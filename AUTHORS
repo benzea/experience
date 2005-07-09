@@ -1,0 +1,15 @@
+Benjamin Berg <benjamin@sipsolutions.net>
+Johannes Berg <johannes@sipsolutions.net>
+
+Also thanks to all the other engines (pixbuf, metal, magic chicken) which I
+used as a reference. Especially the pixbuf engine should be mentioned here,
+because I used a lot of the ideas of that engine (because at first I tried to be
+100% compatibility to that engine, which I gave up now.).
+
+The Rasterman <raster@redhat.com>
+Owen Taylor <otaylor@redhat.com>
+Randy Gordon <randy@integrand.com> [ Metal theme ]
+
+
+
+arch-tag: 06be9b65-6d29-4a3a-b404-7249c73ec028

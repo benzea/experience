@@ -1,0 +1,9 @@
+ * Cleanup the gap drawing code.
+ * Add the no_inherit flag to _all_ options.
+
+Big things:
+ * cairo port (maybe should wait until cairo 0.5 and for gtk versions that
+   depend on cairo)
+   cairo 0.5 seem to be out now. so maybe I should get this started soon.
+
+arch-tag: 45211614-40fb-4fb6-adaa-d0f8235c2841

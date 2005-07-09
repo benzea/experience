@@ -1,0 +1,65 @@
+19.06.2005
+ * Added support for * and ? in the detail string, and program name. This
+   might be usefull for the program name matching.
+
+13.06.2005
+ * Added a small speedup, by saving some GdkPixbuf creations.
+   (Removed again, since it doesn't work.)
+
+01.06.2005 (0.9.6)
+ * Added possibility to match against the program name.
+   eg. program = "zenity", "abiword"
+
+28.05.2005
+ * warnings in filter.c are now usefull.
+
+25.05.2005
+ * Fills can now have an opacity. (A temporary image will be created.)
+ * Fills can inherit from images and vice versa.
+ * Fixed a bug introduced by the above feature. A fill would inherit the
+   mirror option of an image. This is now disabled.
+
+05/15/2005 (0.9.5)
+ * This release adds support for checking any propertie of widgets.
+   This can be used for checking the orientation of GtkProgressBars, and a
+   lot more.
+ * There is now a small summary of the features of this engine available at
+   http://benjamin.sipsolutions.net/Projects/eXperience.
+ * The engine now can be compiled with byacc and bison.
+
+04.05.2005 (0.9.4.1)
+ * This again fixes a bug in configure.ac. I hope now the PKG_CHECK_MODULES
+   line is correct!
+
+01.05.2005 (0.9.4)
+ * This version now has right to left locale support. This means there is a
+   new option text_orientation, that you can use for i18l.
+ * Bumped up the version number, because I believe enough important changes
+   have accumulated.
+
+27.04.2005 (0.9.3.4)
+ * Ok, this fixes an error in the configure.ac. I missed to put gtk+-2.0
+   into PKG_CHECK_MODULES so the engine got linked wrong (it only compiled
+   because of a stupid hack). This should fix the linking issue, and all
+   apps should look fine again.
+
+18.04.2005 (0.9.3.3)
+ * This Version fixes a bug which caused wrong colors sometimes.
+   (I wanted to save an hash table lookup, but that doesn't work)
+
+27.03.2005 (0.9.3)
+ * Some speedups. Engine doesn't feel much faster though.
+ * Fixed bug because of which some icons had color strips.
+ * Fixed bug that gaps weren't drawn correctly, if they only needed
+   a partial redraw.
+
+25.01.2005
+Mostly bugfixes. e.g.
+ * Fixed Firefox menu bug
+ * some memory leaks.
+
+02.01.2005
+This is the first official release of the eXperience GTK-2 engine. 
+
+
+arch-tag: 04493dff-1214-470f-9741-43285ae5d53d

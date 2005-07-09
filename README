@@ -1,0 +1,75 @@
+
+General Infos
+=============
+
+This is the eXperience GTK-2 engine. Created by Benjamin Berg
+<benjamin@sipsolutions.net> with some help of his brother Johannes.
+
+This engine is a new GTK-2 engine, to create pixmap based themes. It is
+much more flexible than the old pixbuf (aka. pixmap) engine. It allows
+to draw widget as a stack of multiple images. The recolor command gives
+you the possibility to easily customize the colors used throughout the theme.
+
+To have a glance at the impressive features of this engine, you should
+have a look at the different color schemes of the eXperience GTK-Theme.
+
+http://benjamin.sipsolutions.net/Projects/eXperience
+
+Bugs
+====
+
+Known Bugs:
+ * Galeon crashes here after viewing File->Properties->Images and then
+   closing the window. Don't know if this is actually a bug of the engine,
+   or is just caused by something else. But it only happens with the
+   eXperience theme as far as I know.
+ * Some icons are broken. (This is gdk bug #306364)
+ * It is slow ... (not really a bug, but I don't want to get mails about it,
+   except maybe suggestions, how to get it faster.)
+
+If you happen to find any other bugs, please contact me.
+
+Installing
+==========
+
+You might need to run ./configure with --prefix=/usr, so that the engine
+will be found by gtk.
+
+Deinstalling
+============
+
+To deinstall the engine delete the created libexperience.so and
+libexperience.la files.
+You will probably find them in /usr/lib/gtk-2.0/2.4.0/engines/
+
+
+Debian
+======
+
+There is a debian (i386 only) package available from:
+deb http://benjamin.sipsolutions.net/debian/ unstable/
+
+In the repository there are also packages for the eXperience GTK-Theme and
+the eXperience icon theme.
+
+Theming
+=======
+
+I have created some description about the engine and its features at
+http://benjamin.sipsolutions.net/Projects/eXperience
+There you find the different possible options for images, groups, etc.
+
+If you have any questions, or problems please mail me!
+
+Hacking
+=======
+
+You can get the latest version of the engine from my baz archive.
+
+It is benjamin@sipsolutions.net--2005 and is available from
+http://benjamin.sipsolutions.net/archives/benjamin@sipsolutions.net--2005.
+
+The development branch for the eXperience engine is
+experience-gtk-engine--devo--0
+
+arch-tag: 49408faa-7841-402e-a6fc-657044178f58

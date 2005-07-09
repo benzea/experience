@@ -1,0 +1,6 @@
+# arch-tag: 99c65afb-67b8-448f-bd3b-289ac7f53ddd
+
+junk ^files$
+junk ^gtk2-engines-experience$
+junk ^gtk2-engines-experience-dbg$
+junk ^gtk2-engines-experience.substvars$
