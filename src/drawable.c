@@ -541,11 +541,6 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 	real_dest_size.width  -= drawable->private->padding.left + drawable->private->padding.right;
 	real_dest_size.height -= drawable->private->padding.top  + drawable->private->padding.bottom;
 
-	if (!drawable->private->dont_clip) {
-			cairo_rectangle (cr, 0, 0, real_dest_size.width, real_dest_size.height);
-			cairo_clip (cr);
-	}
-	
 	/* get information */
 	if (drawable->class->get_info != NULL) {
 		drawable->class->get_info (drawable, style, &drawable_size);
@@ -561,6 +556,15 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 	
 	translation.x = experience_round(drawable->private->rounding, ((drawable->private->xpos.widget + 1.0) * (gfloat) real_dest_size.width  / 2.0) - ((drawable->private->xpos.widget + 1.0) * (gfloat) repeat_distance.width  / 2.0));
 	translation.y = experience_round(drawable->private->rounding, ((drawable->private->ypos.widget + 1.0) * (gfloat) real_dest_size.height / 2.0) - ((drawable->private->ypos.widget + 1.0) * (gfloat) repeat_distance.height / 2.0));
+	
+	translation.x += drawable->private->xpos.pixel;
+	translation.y += drawable->private->ypos.pixel;
+
+	if (!drawable->private->dont_clip) { /* maybe do this by making the fill smaller */
+			cairo_rectangle (cr, translation.x, translation.y, real_dest_size.width, real_dest_size.height);
+			cairo_clip (cr);
+	}
+	
 	
 	{ /* calculate dest area */
 		dest_area.x = translation.x;
@@ -603,7 +607,7 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 		draw_entire_area.width  -= draw_entire_area.width  % repeat_distance.width;
 		draw_entire_area.height -= draw_entire_area.height % repeat_distance.height;
 		
-		gdk_rectangle_intersect (&dest_area, &draw_entire_area, &dest_area);
+/*		gdk_rectangle_intersect (&dest_area, &draw_entire_area, &dest_area);*/
 	}
 	
 	{
@@ -632,8 +636,11 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 	
 	if (result) {
 		/* draw the pattern */
-		gdk_cairo_rectangle (cr, &dest_area);
+		cairo_translate (cr, dest_area.x, dest_area.y);
+		cairo_rectangle (cr, 0, 0, dest_area.width, dest_area.height);
+		
 		cairo_set_source (cr, pattern);
+		
 		cairo_fill (cr);
 	}
 	
