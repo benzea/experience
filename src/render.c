@@ -13,7 +13,7 @@ experience_get_cairo_context (GdkWindow * window, GdkRectangle * object_area, Gd
 	
 	/* set up clipping */
 	if (dont_clip_to_object) {
-		cairo_rectangle (cr, area->x, area->y, area->width, area->height);
+		gdk_cairo_rectangle (cr, area);
 	} else {
 		gdk_cairo_rectangle (cr, object_area);
 	}
