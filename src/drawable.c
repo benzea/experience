@@ -607,7 +607,7 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 		draw_entire_area.width  -= draw_entire_area.width  % repeat_distance.width;
 		draw_entire_area.height -= draw_entire_area.height % repeat_distance.height;
 		
-/*		gdk_rectangle_intersect (&dest_area, &draw_entire_area, &dest_area);*/
+		gdk_rectangle_intersect (&dest_area, &draw_entire_area, &dest_area);
 	}
 	
 	{
@@ -629,6 +629,8 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 			result = FALSE; /* whoops, fail */
 			goto end;
 		}
+		
+		cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REPEAT);
 	}
 	
 	/* draw */
