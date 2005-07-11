@@ -73,9 +73,9 @@ draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienceSize * dest_size, G
 	/* rectangle */
 	cairo_rectangle (cr, 0, 0, dest_size->width, dest_size->height);
 	
-	cairo_set_source_rgba (cr, (color.red   / ((double) G_MAXINT16)) * drawable->filter.opacity,
-	                           (color.green / ((double) G_MAXINT16)) * drawable->filter.opacity,
-	                           (color.blue  / ((double) G_MAXINT16)) * drawable->filter.opacity,
+	cairo_set_source_rgba (cr, color.red   / ((double) G_MAXUINT16),
+	                           color.green / ((double) G_MAXUINT16),
+	                           color.blue  / ((double) G_MAXUINT16),
 	                           drawable->filter.opacity);
 	
 	cairo_fill (cr);
