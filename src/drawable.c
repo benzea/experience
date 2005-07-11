@@ -573,7 +573,7 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 		if ((drawable->private->repeat.top == 0) || (drawable->private->repeat.bottom == 0)) {
 			dest_area.height = BIG;
 		} else {
-			dest_area.height = (drawable->private->repeat.top + drawable->private->repeat.bottom - 1) * repeat_distance.width;
+			dest_area.height = (drawable->private->repeat.top + drawable->private->repeat.bottom - 1) * repeat_distance.height;
 		}
 		
 		if (drawable->private->repeat.left == 0) {
