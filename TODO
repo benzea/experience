@@ -1,3 +1,6 @@
+ * everywhere where there is a g_assert, should be another check later, so
+   that I can compile with G_DISABLE_ASSERT. And if I somehow force a crash
+   in some cases.
  * Cleanup the gap drawing code.
  * Add the no_inherit flag to _all_ options.
 

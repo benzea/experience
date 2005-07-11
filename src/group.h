@@ -82,7 +82,7 @@ void experience_group_ref (eXperienceGroup * group);
 void experience_group_ref_or_load (eXperienceGroup * group);
 gboolean experience_group_unref (eXperienceGroup * group);
 
-gboolean experience_group_draw (eXperienceGroup * group, GdkPixbuf * dest, GdkRectangle * dest_area, GdkRegion * dirty_region, GtkStyle * style);
+gboolean experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * dest_size, GtkStyle * style);
 
 void experience_group_unref_ptr (void * groups);
 

@@ -38,4 +38,9 @@ typedef struct {
 	gint bottom;
 } eXperiencePadding;
 
+typedef struct {
+	gint width;
+	gint height;
+} eXperienceSize;
+
 #endif /* __DATA_H */

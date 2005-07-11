@@ -52,9 +52,9 @@ struct _eXperienceDrawableClass {
 	
 	void (*destroy) (eXperienceDrawable * drawable);
 	
-	gboolean (*draw_begin) (eXperienceDrawable * drawable, GtkStyle * style, gpointer * tmp_data, gint * width, gint * height, gboolean * fail);
-	gboolean (*draw) (eXperienceDrawable * drawable, gpointer tmp_data, GdkPixbuf * dest, GdkRectangle * dest_area, GdkRectangle * clip_area, GdkRegion * dirty_region);
-	gboolean (*draw_end) (eXperienceDrawable * drawable, gpointer tmp_data);
+	void (*get_info) (eXperienceDrawable * drawable, GtkStyle * style, eXperienceSize * size);
+	
+	gboolean (*draw) (eXperienceDrawable * drawable, cairo_t * cr, eXperienceSize * dest_size, GtkStyle * style);
 };
 
 typedef struct _eXperienceDrawablePrivate eXperienceDrawablePrivate;
@@ -94,6 +94,6 @@ void experience_drawable_set_dont_clip (eXperienceDrawable * drawable, gboolean 
 
 void experience_drawable_apply_group_settings (eXperienceDrawable * drawable, eXperienceGroup * group);
 void experience_drawable_inherit_from (eXperienceDrawable * drawable, eXperienceDrawable * from);
-gboolean experience_drawable_draw (eXperienceDrawable * drawable, GdkPixbuf * dest, GdkRectangle * dest_area, GdkRegion * dirty_region, GtkStyle * style);
+gboolean experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienceSize * dest_size, GtkStyle * style);
 
 #endif /* __DRAWABLE_H */

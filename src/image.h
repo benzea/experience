@@ -64,7 +64,7 @@ struct _image {
 	eXperienceImageOptionList options_set;
 	
 	gchar * file;
-	GdkInterpType interp_type;
+	cairo_filter_t interp_type;
 	
 	eXperienceBorder border;
 	eXperienceComponents draw_components;

@@ -71,10 +71,6 @@ void experience_set_pixbuf_brightness (GdkPixbuf * pixbuf, gfloat brightness);
 
 void experience_gdk_rectangle_union (GdkRectangle * src1, GdkRectangle * src2, GdkRectangle * dest);
 
-typedef GdkPixbuf * (*eXperience_get_image_from_info) (gpointer info);
-
-void experience_pixbuf_composite (GdkPixbuf * dest, GdkRectangle * dst_area, GdkRectangle * clip_area, GdkRegion * dirty_region, eXperience_get_image_from_info get_image, gpointer info);
-
 guint hash_mem (gpointer start, guint count, guint init);
 
 #endif /* __UTILS_H */

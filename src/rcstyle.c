@@ -29,7 +29,6 @@
 #include "group.h"
 #include "experience.h"
 #include "image_loading.h"
-#include "render.h"
 
 static void      experience_rc_style_init         (eXperienceRcStyle      *style);
 static void      experience_rc_style_class_init   (eXperienceRcStyleClass *klass);
@@ -359,7 +358,4 @@ experience_cleanup_everything (void)
 	experience_image_cache_destroy ();
 	
 	experience_engine_state = NONE;
-	
-	/* cleanup render cache */
-	experience_render_cleanup ();
 }

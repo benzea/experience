@@ -291,35 +291,41 @@ experience_group_cleanup (eXperienceGroup * group)
 /*---------*/
 
 gboolean
-experience_group_draw (eXperienceGroup * group, GdkPixbuf * dest, GdkRectangle * dest_area, GdkRegion * dirty_region, GtkStyle * style)
+experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * dest_size, GtkStyle * style)
 {
-	GdkRectangle real_dest_area;
 	GList * list;
 	eXperienceDrawable * drawable;
+	eXperienceSize real_dest_size;
 	
 	g_return_val_if_fail (group != NULL, FALSE);
-	g_return_val_if_fail (dest  != NULL, FALSE);
-	g_return_val_if_fail (dest_area  != NULL, FALSE);
+	g_return_val_if_fail (cr    != NULL, FALSE);
 	g_return_val_if_fail (style != NULL, FALSE);
+	g_return_val_if_fail (dest_size != NULL, FALSE);
 	
-	real_dest_area = *dest_area;
-	real_dest_area.x += group->padding.left;
-	real_dest_area.y += group->padding.top;
-	real_dest_area.width  -= group->padding.left + group->padding.right;
-	real_dest_area.height -= group->padding.top  + group->padding.bottom;
+	real_dest_size = *dest_size;
+	
+	cairo_save (cr);
+	cairo_translate (cr, group->padding.left, group->padding.top);
+	
+	real_dest_size.width  -= group->padding.left + group->padding.right;
+	real_dest_size.height -= group->padding.top  + group->padding.bottom;
 	
 	list = group->drawables;
 	
 	while (list != NULL) {
 		drawable = list->data;
 		
-		if (!experience_drawable_draw (drawable, dest, &real_dest_area, dirty_region, style)) {
+		if (!experience_drawable_draw (drawable, cr, &real_dest_size, style)) {
 			g_printerr ("Couldn't draw widget, because \"%s %i\" in group \"%s\" couldn't be drawn.\n", drawable->class->object_type, drawable->number, group->name);
+			
+			cairo_restore (cr);
 			return FALSE;
 		}
 		
 		list = g_list_next (list);
 	}
+	
+	cairo_restore (cr);
 	return TRUE;
 }
 

@@ -86,7 +86,7 @@ get_matching_group (eXperienceRcStyle *style, eXperienceMatchTemp * match)
 }
 
 static gboolean
-draw_matching_group(GtkStyle *style, GtkWidget * widget, eXperienceMatchTemp * match, GdkWindow * window, GdkRectangle * object_area, GdkRectangle * area, eXperienceComponents draw_components)
+draw_matching_group (GtkStyle *style, GtkWidget * widget, eXperienceMatchTemp * match, GdkWindow * window, GdkRectangle * object_area, GdkRectangle * area, eXperienceComponents draw_components)
 {
 	eXperienceGroup * group;
 	gchar * class_path, * path;
@@ -147,7 +147,7 @@ draw_gap (GtkDrawingFunctions function,
 	#define _START 0
 	#define _GAP 1
 	#define _END 2
-	
+#if 0	
 	gint xthickness[3], ythickness[3];
 	gint i;
 	eXperienceRcStyle * rc_style;
@@ -330,7 +330,7 @@ draw_gap (GtkDrawingFunctions function,
 	}
 	
 	if (pixbuf_bg != NULL) g_object_unref (pixbuf_bg);
-	
+#endif
 	return TRUE;
 }
 

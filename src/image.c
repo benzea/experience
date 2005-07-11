@@ -198,63 +198,6 @@ enum {
 	CENTER,
 } eXperienceAreas;
 
-typedef struct {
-	GdkPixbuf * scaled_pixbuf[9], * loaded_pixbuf;
-	GdkRectangle src_area[9];
-	gint scaled_width[9], scaled_height[9];
-	eXperienceBorder px_border;
-	gboolean calculated_scaled_info;
-} tmp_drawing_data;
-
-
-static gboolean
-draw_begin (eXperienceDrawable * drawable, GtkStyle * style, gpointer * tmp_data, gint * width, gint * height, gboolean * fail)
-{
-	eXperienceCacheImage cache_image;
-	eXperienceImage * image = (eXperienceImage*) drawable;
-	tmp_drawing_data * paint_data;
-	
-	g_assert (drawable != NULL);
-	g_assert (style    != NULL);
-	g_assert (width    != NULL);
-	g_assert (height   != NULL);
-	g_assert (fail     != NULL);
-	
-	cache_image.file   = image->file;
-	cache_image.filter = drawable->filter;
-	
-	/* try to load the image ... */
-	paint_data = g_new0 (tmp_drawing_data, 1);
-	paint_data->loaded_pixbuf = experience_get_image_pixbuf (&cache_image, style);
-	
-	if (paint_data->loaded_pixbuf == NULL) {
-		*fail = TRUE;
-		g_free (paint_data);
-		return FALSE;
-	}
-	
-	*width  = gdk_pixbuf_get_width  (paint_data->loaded_pixbuf);
-	*height = gdk_pixbuf_get_height (paint_data->loaded_pixbuf);
-	
-	/* make image border smaller if it doesn't fit on the image. */
-	if (image->border.left + image->border.right >= *width) {
-		g_printerr ("Image border (horizontal) of image #%i in group \"%s\" is too big!\n", drawable->number, drawable->group_name);
-		image->border.left  =  *width / 2;
-		image->border.right = (*width - 1) / 2;
-	}
-	if (image->border.top + image->border.bottom >= *height) {
-		g_printerr ("Image border (vertical) of image #%i in group \"%s\" is too big!\n", drawable->number, drawable->group_name);
-		image->border.top    =  *height / 2;
-		image->border.bottom = (*height - 1) / 2;
-	}
-	
-	paint_data->px_border = image->border;
-	
-	*tmp_data = (gpointer) paint_data;
-	
-	return TRUE;
-}
-
 const eXperienceComponents convert[9] = {
 	COMPONENT_NORTH,
 	COMPONENT_SOUTH,
@@ -267,22 +210,32 @@ const eXperienceComponents convert[9] = {
 	COMPONENT_CENTER,
 };
 
+typedef struct {
+	cairo_t * cr;
+	GdkPixbuf * source;
+	eXperienceBorder px_border;
+	GdkRectangle src_area[9];
+	gint scaled_width[9], scaled_height[9];
+} tmp_drawing_data;
+
 static void
-calculate_scaled_info (eXperienceImage * image, tmp_drawing_data * paint_data, gint dst_width, gint dst_height)
+calculate_scaled_info (eXperienceImage * image, tmp_drawing_data * paint_data, eXperienceSize * dest_size)
 {
 	gint img_width, img_height;
 	
-	img_width  = gdk_pixbuf_get_width (paint_data->loaded_pixbuf);
-	img_height = gdk_pixbuf_get_height (paint_data->loaded_pixbuf);
+	img_width  = gdk_pixbuf_get_width  (paint_data->source);
+	img_height = gdk_pixbuf_get_height (paint_data->source);
+	
+	paint_data->px_border = image->border;
 	
 	/* make border smaller if it is to big. */
-	if ((paint_data->px_border.left + paint_data->px_border.right) >= dst_width) {
-		paint_data->px_border.left  = dst_width / 2;
-		paint_data->px_border.right = (dst_width - 1) / 2;
+	if ((paint_data->px_border.left + paint_data->px_border.right) >= dest_size->width) {
+		paint_data->px_border.left  = dest_size->width / 2;
+		paint_data->px_border.right = (dest_size->width - 1) / 2;
 	}
-	if ((paint_data->px_border.top + paint_data->px_border.bottom) >= dst_height) {
-		paint_data->px_border.top    = dst_height / 2;
-		paint_data->px_border.bottom = (dst_height - 1) / 2;
+	if ((paint_data->px_border.top + paint_data->px_border.bottom) >= dest_size->height) {
+		paint_data->px_border.top    = dest_size->height / 2;
+		paint_data->px_border.bottom = (dest_size->height - 1) / 2;
 	}
 	
 	/*############*/
@@ -297,9 +250,9 @@ calculate_scaled_info (eXperienceImage * image, tmp_drawing_data * paint_data, g
 	paint_data->src_area[NORTH].y      = 0;
 	paint_data->src_area[NORTH].width  = img_width - image->border.left - image->border.right;
 	paint_data->src_area[NORTH].height = image->border.top;
-	paint_data->scaled_width[NORTH]    = dst_width - paint_data->px_border.left - paint_data->px_border.right;
+	paint_data->scaled_width[NORTH]    = dest_size->width - paint_data->px_border.left - paint_data->px_border.right;
 	paint_data->scaled_height[NORTH]   = paint_data->px_border.top;
-
+	
 	paint_data->src_area[NORTH_EAST].x      = img_width - image->border.right;
 	paint_data->src_area[NORTH_EAST].y      = 0;
 	paint_data->src_area[NORTH_EAST].width  = image->border.right;
@@ -314,21 +267,21 @@ calculate_scaled_info (eXperienceImage * image, tmp_drawing_data * paint_data, g
 	paint_data->src_area[WEST].width  = image->border.left;
 	paint_data->src_area[WEST].height = img_height - image->border.top - image->border.bottom;
 	paint_data->scaled_width[WEST]    = paint_data->px_border.left;
-	paint_data->scaled_height[WEST]   = dst_height - paint_data->px_border.top - paint_data->px_border.bottom;
+	paint_data->scaled_height[WEST]   = dest_size->height - paint_data->px_border.top - paint_data->px_border.bottom;
 	
 	paint_data->src_area[CENTER].x      = image->border.left;
 	paint_data->src_area[CENTER].y      = image->border.top;
 	paint_data->src_area[CENTER].width  = img_width - image->border.left - image->border.right;
 	paint_data->src_area[CENTER].height = img_height - image->border.top - image->border.bottom;
-	paint_data->scaled_width[CENTER]    = dst_width  - paint_data->px_border.left - paint_data->px_border.right;
-	paint_data->scaled_height[CENTER]   = dst_height - paint_data->px_border.top  - paint_data->px_border.bottom;
+	paint_data->scaled_width[CENTER]    = dest_size->width  - paint_data->px_border.left - paint_data->px_border.right;
+	paint_data->scaled_height[CENTER]   = dest_size->height - paint_data->px_border.top  - paint_data->px_border.bottom;
 
 	paint_data->src_area[EAST].x      = img_width - image->border.right;
 	paint_data->src_area[EAST].y      = image->border.top;
 	paint_data->src_area[EAST].width  = image->border.right;
 	paint_data->src_area[EAST].height = img_height - image->border.top - image->border.bottom;
 	paint_data->scaled_width[EAST]    = paint_data->px_border.right;
-	paint_data->scaled_height[EAST]   = dst_height - paint_data->px_border.top - paint_data->px_border.bottom;
+	paint_data->scaled_height[EAST]   = dest_size->height - paint_data->px_border.top - paint_data->px_border.bottom;
 	
 	/*--*/
 	
@@ -343,7 +296,7 @@ calculate_scaled_info (eXperienceImage * image, tmp_drawing_data * paint_data, g
 	paint_data->src_area[SOUTH].y      = img_height - image->border.bottom;
 	paint_data->src_area[SOUTH].width  = img_width - image->border.left - image->border.right;
 	paint_data->src_area[SOUTH].height = image->border.bottom;
-	paint_data->scaled_width[SOUTH]    = dst_width - paint_data->px_border.left - paint_data->px_border.right;
+	paint_data->scaled_width[SOUTH]    = dest_size->width - paint_data->px_border.left - paint_data->px_border.right;
 	paint_data->scaled_height[SOUTH]   = paint_data->px_border.bottom;
 
 	paint_data->src_area[SOUTH_EAST].x      = img_width - image->border.right;
@@ -354,134 +307,114 @@ calculate_scaled_info (eXperienceImage * image, tmp_drawing_data * paint_data, g
 	paint_data->scaled_height[SOUTH_EAST]   = paint_data->px_border.bottom;
 	
 	/*#############*/
-	paint_data->calculated_scaled_info = TRUE;
 }
-
-typedef struct {
-	tmp_drawing_data * paint_data;
-	gint area;
-	GdkInterpType interp_type;
-} tmp_get_image_info;
-
-
-static GdkPixbuf *
-scale_image_part (gpointer info_ptr)
-{
-	GdkPixbuf * result;
-	tmp_get_image_info * info = (tmp_get_image_info*) info_ptr;
-	
-	if (info->paint_data->scaled_pixbuf[info->area] != NULL) {
-		return info->paint_data->scaled_pixbuf[info->area];
-	}
-	
-/*	sub_pixbuf = gdk_pixbuf_new_subpixbuf (info->paint_data->loaded_pixbuf,
-	                                       info->paint_data->src_area[info->area].x,
-	                                       info->paint_data->src_area[info->area].y,
-	                                       info->paint_data->src_area[info->area].width,
-	                                       info->paint_data->src_area[info->area].height);
-	
-	result = experience_gdk_pixbuf_scale_simple_or_ref (sub_pixbuf,
-	                                                    info->paint_data->scaled_width [info->area],
-	                                                    info->paint_data->scaled_height[info->area],
-	                                                    info->interp_type);
-	*/
-	
-	result = experience_gdk_pixbuf_scale_or_ref (info->paint_data->loaded_pixbuf,
-	                                             &info->paint_data->src_area[info->area],
-  	                                             info->paint_data->scaled_width [info->area],
-	                                             info->paint_data->scaled_height[info->area],
-	                                             info->interp_type);
-	
-	info->paint_data->scaled_pixbuf[info->area] = result;
-	
-	return result;
-}
-
 
 static void
-draw_image_part (eXperienceImage * image, tmp_drawing_data * paint_data, GdkPixbuf * dest, GdkRectangle * clip_area, GdkRegion * dirty_region, gint area, gint x_pos, gint y_pos)
+draw_image_part (tmp_drawing_data * paint_data, eXperienceImage * image, gint area, gint x_pos, gint y_pos)
 {
-	GdkRectangle dest_area;
-	tmp_get_image_info get_image_info;
+	double scale_x, scale_y;
+	GdkPixbuf * subpixbuf;
 	
-	if (image->draw_components & convert[area]) {
-		dest_area.x = x_pos;
-		dest_area.y = y_pos;
-		dest_area.width  = paint_data->scaled_width [area];
-		dest_area.height = paint_data->scaled_height[area];
+	if ((image->draw_components & convert[area]) && ((paint_data->src_area[area].width > 0) && (paint_data->src_area[area].height > 0))) {
+		cairo_save (paint_data->cr);
 		
-		get_image_info.paint_data = paint_data;
-		get_image_info.area = area;
-		get_image_info.interp_type = image->interp_type;
-			
-		experience_pixbuf_composite (dest, &dest_area, clip_area, dirty_region, scale_image_part, &get_image_info);
+		scale_x = paint_data->scaled_width [area] / (float) paint_data->src_area[area].width;
+		scale_y = paint_data->scaled_height[area] / (float) paint_data->src_area[area].height;
+		
+		subpixbuf = gdk_pixbuf_new_subpixbuf (paint_data->source,
+		                                      paint_data->src_area[area].x, paint_data->src_area[area].y,
+		                                      paint_data->src_area[area].width, paint_data->src_area[area].height);
+		
+		cairo_translate (paint_data->cr, x_pos, y_pos);
+		cairo_scale (paint_data->cr, scale_x, scale_y);
+		gdk_cairo_set_source_pixbuf (paint_data->cr, subpixbuf, 0, 0);
+		
+		cairo_paint (paint_data->cr);
+		
+		gdk_pixbuf_unref (subpixbuf);
+		
+		cairo_restore (paint_data->cr);
 	}
 }
 
-static gboolean
-draw (eXperienceDrawable * drawable, gpointer tmp_data, GdkPixbuf * dest, GdkRectangle * dest_area, GdkRectangle * clip_area, GdkRegion * dirty_region)
+static void
+get_info (eXperienceDrawable * drawable, GtkStyle * style, eXperienceSize * size)
 {
 	eXperienceImage * image = (eXperienceImage*) drawable;
-	tmp_drawing_data * paint_data = (tmp_drawing_data*) tmp_data;
-		
-	g_assert (drawable != NULL);
-	g_assert (paint_data != NULL);
-	g_assert (dest     != NULL);
+	eXperienceCacheImage cache_image;
+	GdkPixbuf * source;
 	
-	if (!paint_data->calculated_scaled_info) {
-		calculate_scaled_info (image, paint_data, dest_area->width, dest_area->height);
+	g_assert (drawable  != NULL);
+	g_assert (size != NULL);
+	
+	/* get source pixbuf */
+	cache_image.file   = image->file;
+	cache_image.filter = drawable->filter;
+	
+	source = experience_get_image_pixbuf (&cache_image, style);
+	
+	if (source != NULL) {
+		size->width  = gdk_pixbuf_get_width  (source);
+		size->height = gdk_pixbuf_get_height (source);
 	}
-	
-	draw_image_part (image, paint_data, dest, clip_area, dirty_region,
-	                 NORTH_WEST, dest_area->x,
-	                             dest_area->y);
-	draw_image_part (image, paint_data, dest, clip_area, dirty_region,
-	                 NORTH,      dest_area->x + (gint) paint_data->px_border.left,
-	                             dest_area->y);
-	draw_image_part (image, paint_data, dest, clip_area, dirty_region,
-	                 NORTH_EAST, dest_area->x + dest_area->width - (gint) paint_data->px_border.right,
-	                             dest_area->y);
-		
-	draw_image_part (image, paint_data, dest, clip_area, dirty_region,
-	                 WEST,   dest_area->x,
-	                         dest_area->y + (gint) paint_data->px_border.top);
-	draw_image_part (image, paint_data, dest, clip_area, dirty_region,
-	                 CENTER, dest_area->x + (gint) paint_data->px_border.left,
-	                         dest_area->y + (gint) paint_data->px_border.top);
-	draw_image_part (image, paint_data, dest, clip_area, dirty_region,
-	                 EAST,   dest_area->x + (gint) dest_area->width - (gint) paint_data->px_border.right,
-	                         dest_area->y + (gint) paint_data->px_border.top);
-
-	draw_image_part (image, paint_data, dest, clip_area, dirty_region,
-	                 SOUTH_WEST, dest_area->x,
-	                             dest_area->y + (gint) dest_area->height - (gint) paint_data->px_border.bottom);
-	draw_image_part (image, paint_data, dest, clip_area, dirty_region,
-	                 SOUTH,      dest_area->x + (gint) paint_data->px_border.left,
-	                             dest_area->y + (gint) dest_area->height - (gint) paint_data->px_border.bottom);
-	draw_image_part (image, paint_data, dest, clip_area, dirty_region,
-	                 SOUTH_EAST, dest_area->x + (gint) dest_area->width  - (gint) paint_data->px_border.right,
-	                             dest_area->y + (gint) dest_area->height - (gint) paint_data->px_border.bottom);
-
-	return TRUE;
 }
 
+
 static gboolean
-draw_end (eXperienceDrawable * drawable, gpointer tmp_data)
+draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienceSize * dest_size, GtkStyle * style)
 {
-	gint i;
-	tmp_drawing_data * paint_data = (tmp_drawing_data*) tmp_data;
+	eXperienceImage * image = (eXperienceImage*) drawable;
+	eXperienceCacheImage cache_image;
+	tmp_drawing_data paint_data;
 	
-	g_assert (paint_data != NULL);
+	g_assert (drawable  != NULL);
+	g_assert (dest_size != NULL);
 	
-	for (i = 0; i <= CENTER; i++) {
-		if (paint_data->scaled_pixbuf[i] != NULL) {
-			g_object_unref ((GObject*) paint_data->scaled_pixbuf[i]);
-			paint_data->scaled_pixbuf[i] = NULL;
-		}
+	/* get source pixbuf */
+	cache_image.file   = image->file;
+	cache_image.filter = drawable->filter;
+	
+	paint_data.cr = cr;
+	paint_data.source = experience_get_image_pixbuf (&cache_image, style);
+	
+	if (paint_data.source == NULL) {
+		return FALSE;
 	}
 	
-	g_free (paint_data);
+	/* get the needed info */
+	calculate_scaled_info (image, &paint_data, dest_size);
 	
+	/* and draw */
+	draw_image_part (&paint_data, image, NORTH_WEST,
+	                 0,
+	                 0);
+	draw_image_part (&paint_data, image, NORTH,
+	                 (gint) paint_data.px_border.left,
+	                 0);
+	draw_image_part (&paint_data, image, NORTH_EAST,
+	                 dest_size->width - (gint) paint_data.px_border.right,
+	                 0);
+	
+	draw_image_part (&paint_data, image, WEST,
+	                 0,
+	                 (gint) paint_data.px_border.top);
+	draw_image_part (&paint_data, image, CENTER,
+	                 (gint) paint_data.px_border.left,
+	                 (gint) paint_data.px_border.top);
+	draw_image_part (&paint_data, image, EAST,
+	                 (gint) dest_size->width - (gint) paint_data.px_border.right,
+	                 (gint) paint_data.px_border.top);
+
+	draw_image_part (&paint_data, image, SOUTH_WEST,
+	                 0,
+	                 (gint) dest_size->height - (gint) paint_data.px_border.bottom);
+	draw_image_part (&paint_data, image, SOUTH,
+	                 (gint) paint_data.px_border.left,
+	                 (gint) dest_size->height - (gint) paint_data.px_border.bottom);
+	draw_image_part (&paint_data, image, SOUTH_EAST,
+	                 (gint) dest_size->width  - (gint) paint_data.px_border.right,
+	                 (gint) dest_size->height - (gint) paint_data.px_border.bottom);
+
 	return TRUE;
 }
 
@@ -491,11 +424,10 @@ void
 experience_image_init_class (void)
 {
 	_experience_image_class.object_type = "image";
-	_experience_image_class.create     = create;
-	_experience_image_class.destroy    = destroy;
-	_experience_image_class.draw_begin = draw_begin;
-	_experience_image_class.draw       = draw;
-	_experience_image_class.draw_end   = draw_end;
+	_experience_image_class.create      = create;
+	_experience_image_class.destroy     = destroy;
+	_experience_image_class.get_info    = get_info;
+	_experience_image_class.draw        = draw;
 	_experience_image_class.inherit_from_drawable = inherit_from_drawable;
 	_experience_image_class.apply_group_settings  = apply_group_settings;
 	

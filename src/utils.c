@@ -42,13 +42,13 @@ experience_round (eXperienceRoundingMethod method, gfloat value)
 {
 	switch (method) {
 		case ROUND_CEIL:
-			return (gint) ceilf (value);
+			return (gint) ceil (value);
 			break;
 		case ROUND_FLOOR:
-			return (gint) floorf (value);
+			return (gint) floor (value);
 			break;
 		case ROUND_NORMAL:
-			return (gint) floorf (value + 0.5);
+			return (gint) floor (value + 0.5);
 			break;
 		case ROUND_TO_ZERO:
 				return (gint) value;
@@ -361,51 +361,6 @@ experience_set_pixbuf_brightness (GdkPixbuf * pixbuf, gfloat brightness)
 	}
 	
 	return;
-}
-
-
-/*###########*/
-
-void
-experience_pixbuf_composite (GdkPixbuf * dest, GdkRectangle * dest_area, GdkRectangle * clip_area, GdkRegion * dirty_region, eXperience_get_image_from_info get_image, gpointer info)
-{
-	GdkPixbuf * image;
-	GdkRectangle tmp_area;
-	
-	gdk_rectangle_intersect (clip_area, dest_area, &tmp_area);
-	
-	/* only draw if size is bigger than 0. */
-	if ((tmp_area.width > 0) && (tmp_area.height > 0)) {
-		/* this needs to be drawn! */
-		
-		/* get the image */
-		image = get_image(info);
-		
-		/* check whether anything was already painted on the area. Or if the image doesn't have an alpha chanel. */
-		if (   (dirty_region && gdk_region_rect_in (dirty_region, &tmp_area) == GDK_OVERLAP_RECTANGLE_OUT)
-		    || (!gdk_pixbuf_get_has_alpha (image))) { /* I am curious if the has_alpha check can actually gain any speed. Comments welcome. */
-			/* We can just copy the area. */
-			/* First calculate the offset on the image */
-			gint x_offset = tmp_area.x - dest_area->x; /* ?_offset musst be bigger or equal than 0 after this. */
-			gint y_offset = tmp_area.y - dest_area->y;
-			
-			/* Copy the data to the dest image. */
-			gdk_pixbuf_copy_area (image,
-			                      x_offset, y_offset,
-			                      tmp_area.width, tmp_area.height,
-			                      dest,
-			                      tmp_area.x, tmp_area.y);
-		} else {
-			/* composite the data on the dest image. */
-			gdk_pixbuf_composite (image, dest, tmp_area.x, tmp_area.y,
-			                      tmp_area.width, tmp_area.height,
-			                      dest_area->x, dest_area->y, 1, 1, GDK_INTERP_NEAREST, 255);
-		}
-		
-		/* make dirty_region bigger ... */
-		if (dirty_region != NULL)
-			gdk_region_union_with_rect (dirty_region, &tmp_area);
-	}
 }
 
 /*###########*/

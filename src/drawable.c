@@ -509,145 +509,140 @@ experience_drawable_inherit_from (eXperienceDrawable * drawable, eXperienceDrawa
 	}
 }
 
+#define BIG 20000
+
 gboolean
-experience_drawable_draw (eXperienceDrawable * drawable, GdkPixbuf * dest, GdkRectangle * dest_area, GdkRegion * dirty_region, GtkStyle * style)
+experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienceSize * dest_size, GtkStyle * style)
 {
-	GdkRectangle real_dest_area;
-	GdkRectangle drawing_area;
-	GdkRectangle clip_area;
-	GdkRectangle dummy_area;
-	gpointer tmp_data = NULL;
-	gint width, height;
-	gint drawable_width, drawable_height;
-	gint padded_width, padded_height;
-	gint xpos, ypos;
-	gint repeat_ypos_row_start, ypos_row_start;
-	gint repeat_xpos, repeat_ypos;
-	gint entire_only_correction_h, entire_only_correction_v;
-	gboolean fail = FALSE;
+	gboolean result = TRUE;
+	eXperienceSize repeat_distance;
+	eXperienceSize drawable_size = {0, 0};
+	cairo_surface_t * surface;
+	cairo_pattern_t * pattern;
+	eXperienceSize sub_cr_size;
+	GdkRectangle dest_area, draw_entire_area;
+	GdkPoint translation;
+	cairo_t * sub_cr;
 	
-	g_assert (drawable  != NULL);
-	g_assert (dest_area != NULL);
-	g_assert (style     != NULL);
-	g_assert (dest      != NULL);
+	eXperienceSize real_dest_size;
 	
+	/* no asserts/checks for now, nothing can really happen, because everything was checked before. */
+	
+	/* if this thing should not be drawn, get OUT */
 	if (drawable->private->dont_draw) return TRUE;
 	
-	real_dest_area = *dest_area;
+	/* after this point, jump to "end" to return. */
+	cairo_save (cr);
 	
-	real_dest_area.x += drawable->private->padding.left;
-	real_dest_area.y += drawable->private->padding.top;
-	real_dest_area.width  -= drawable->private->padding.left + drawable->private->padding.right;
-	real_dest_area.height -= drawable->private->padding.top  + drawable->private->padding.bottom;
+	/* get rid of the border */
+	cairo_translate (cr, drawable->private->padding.left, drawable->private->padding.top);
 	
-	/* initilize the drawing operation */
-	if (!drawable->class->draw_begin (drawable, style, &tmp_data, &drawable_width, &drawable_height, &fail)) {
-		if (fail) {
-			return FALSE;
-		}
-		return TRUE;
-	}
-	if (fail) {
-		g_assert_not_reached ();
-		return FALSE;
+	real_dest_size = *dest_size;
+	real_dest_size.width  -= drawable->private->padding.left + drawable->private->padding.right;
+	real_dest_size.height -= drawable->private->padding.top  + drawable->private->padding.bottom;
+
+	if (!drawable->private->dont_clip) {
+			cairo_rectangle (cr, 0, 0, real_dest_size.width, real_dest_size.height);
+			cairo_clip (cr);
 	}
 	
-	/* calculate the width/height */
-	width  = drawable->private->width. widget * real_dest_area.width  + drawable->private->width. object * drawable_width  + drawable->private->width. pixel;
-	height = drawable->private->height.widget * real_dest_area.height + drawable->private->height.object * drawable_height + drawable->private->height.pixel;
+	/* get information */
+	if (drawable->class->get_info != NULL) {
+		drawable->class->get_info (drawable, style, &drawable_size);
+	}
+	
+	/* calculate the repeat */
+	repeat_distance.width  = drawable->private->width. widget * real_dest_size.width  + drawable->private->width. object * drawable_size.width  + drawable->private->width. pixel;
+	repeat_distance.height = drawable->private->height.widget * real_dest_size.height + drawable->private->height.object * drawable_size.height + drawable->private->height.pixel;
 	
 	/* apply inner padding. save into padded_width, padded_height */
-	padded_width  = width  - (drawable->private->inner_padding.left + drawable->private->inner_padding.right);
-	padded_height = height - (drawable->private->inner_padding.top  + drawable->private->inner_padding.bottom);
+	sub_cr_size.width  = repeat_distance.width  - (drawable->private->inner_padding.left + drawable->private->inner_padding.right);
+	sub_cr_size.height = repeat_distance.height - (drawable->private->inner_padding.top  + drawable->private->inner_padding.bottom);
 	
-	if ((padded_width <= 0) || (padded_height <= 0)) {
-		return TRUE;
-	}
+	translation.x = experience_round(drawable->private->rounding, ((drawable->private->xpos.widget + 1.0) * (gfloat) real_dest_size.width  / 2.0) - ((drawable->private->xpos.widget + 1.0) * (gfloat) repeat_distance.width  / 2.0));
+	translation.y = experience_round(drawable->private->rounding, ((drawable->private->ypos.widget + 1.0) * (gfloat) real_dest_size.height / 2.0) - ((drawable->private->ypos.widget + 1.0) * (gfloat) repeat_distance.height / 2.0));
 	
-	/* calculate the whole drawing area. */
-	clip_area.x = 0;
-	clip_area.y = 0;
-	clip_area.width  = gdk_pixbuf_get_width  (dest);
-	clip_area.height = gdk_pixbuf_get_height (dest);
-	
-	/* apply clipping, if appropriate */
-	if (!drawable->private->dont_clip)
-		gdk_rectangle_intersect (&real_dest_area, &clip_area, &clip_area);
-	
-	/* calculate the position of the drawing */
-	xpos = experience_round(drawable->private->rounding, ((drawable->private->xpos.widget + 1.0) * (gfloat) real_dest_area.width  / 2.0) - ((drawable->private->xpos.widget + 1.0) * (gfloat) width  / 2.0));
-	ypos = experience_round(drawable->private->rounding, ((drawable->private->ypos.widget + 1.0) * (gfloat) real_dest_area.height / 2.0) - ((drawable->private->ypos.widget + 1.0) * (gfloat) height / 2.0));
-	
-	/* add the object size movement */
-	xpos += drawable->private->xpos.object * drawable_width;
-	ypos += drawable->private->ypos.object * drawable_height;
-	
-	/* add the pixel movement */
-	xpos += drawable->private->xpos.pixel;
-	ypos += drawable->private->ypos.pixel;
-
-	/* add the real_dest_area. We now have the top left point, where the drawing starts. */
-	xpos += real_dest_area.x;
-	ypos += real_dest_area.y;
-	
-	/* Now to the tiling */
-	repeat_xpos = -1;
-	repeat_ypos = -1;
-	
-	
-	/* this is for makeing sure that draw_entire_only works correctly */
-	if (drawable->private->draw_entire_only) {
-		entire_only_correction_h = padded_width;
-		entire_only_correction_v = padded_height;
-	} else {
-		entire_only_correction_h = 0;
-		entire_only_correction_v = 0;
-	}
-	
-	/* go to the top and the left until we reach the end */
-	while (((xpos + (gint) width) > clip_area.x + entire_only_correction_h) && (-repeat_xpos < (gint) drawable->private->repeat.left)) {
-		xpos -= width;
-		repeat_xpos -= 1;
-	}
-	while (((ypos + (gint) height) > clip_area.y + entire_only_correction_v) && (-repeat_ypos < (gint) drawable->private->repeat.top)) {
-		ypos -= height;
-		repeat_ypos -= 1;
-	}
-	/* add one to the position (This is because the center image is counted twice.) */
-	repeat_xpos += 1;
-	repeat_ypos += 1;
-	
-	repeat_ypos_row_start = repeat_ypos;
-	ypos_row_start = ypos;
-	
-	/* The actual loop: */
-	/* image->repeat.* is changed to G_MAXINT if it was 0. */
-	while ((xpos + entire_only_correction_h <= (gint) (clip_area.x + clip_area.width)) && (repeat_xpos < (gint) drawable->private->repeat.right)) {
-		repeat_ypos = repeat_ypos_row_start;
-		ypos = ypos_row_start;
-		while ((ypos + entire_only_correction_v <= (gint) (clip_area.y + clip_area.height)) && (repeat_ypos < (gint) drawable->private->repeat.bottom)) {
-			drawing_area.x = xpos + drawable->private->inner_padding.left;
-			drawing_area.y = ypos + drawable->private->inner_padding.top;
-			drawing_area.width  = padded_width;
-			drawing_area.height = padded_height;
-			
-			if (gdk_rectangle_intersect (&drawing_area, &clip_area, &dummy_area)) {
-				/* do the drawing */
-				if (!drawable->class->draw (drawable, tmp_data, dest, &drawing_area, &clip_area, dirty_region)) {
-					return FALSE;
-				}
-			}
-			
-			ypos += height;
-			repeat_ypos += 1;
+	{ /* calculate dest area */
+		dest_area.x = translation.x;
+		dest_area.y = translation.y;
+		if ((drawable->private->repeat.left == 0) || (drawable->private->repeat.right == 0)) {
+			dest_area.width = BIG;
+		} else {
+			dest_area.width = (drawable->private->repeat.left + drawable->private->repeat.right - 1) * repeat_distance.width;
 		}
-		xpos += width;
-		repeat_xpos += 1;
+		if ((drawable->private->repeat.top == 0) || (drawable->private->repeat.bottom == 0)) {
+			dest_area.height = BIG;
+		} else {
+			dest_area.height = (drawable->private->repeat.top + drawable->private->repeat.bottom - 1) * repeat_distance.width;
+		}
+		
+		if (drawable->private->repeat.left == 0) {
+			dest_area.x -= BIG / 2;
+		}
+		if (drawable->private->repeat.top == 0) {
+			dest_area.y -= BIG / 2;
+		}
+		
+		/* translate because of inner padding */
+		dest_area.x += drawable->private->inner_padding.left;
+		dest_area.y += drawable->private->inner_padding.top;
 	}
 	
-	if (drawable->class->draw_end != NULL) {
-		return drawable->class->draw_end (drawable, tmp_data);
+	if (drawable->private->draw_entire_only) {
+		draw_entire_area.x = 0;
+		draw_entire_area.y = 0;
+		draw_entire_area.width  = real_dest_size.width;
+		draw_entire_area.height = real_dest_size.height;
+		
+		draw_entire_area.x += translation.x % repeat_distance.width;
+		draw_entire_area.y += translation.y % repeat_distance.height;
+		
+		draw_entire_area.width  -= draw_entire_area.x;
+		draw_entire_area.height -= draw_entire_area.y;
+		
+		draw_entire_area.width  -= draw_entire_area.width  % repeat_distance.width;
+		draw_entire_area.height -= draw_entire_area.height % repeat_distance.height;
+		
+		gdk_rectangle_intersect (&dest_area, &draw_entire_area, &dest_area);
 	}
 	
-	return TRUE;
+	{
+		/* create the cairo surface */
+		surface = cairo_surface_create_similar (cairo_get_target (cr), CAIRO_CONTENT_COLOR_ALPHA, repeat_distance.width, repeat_distance.height);
+		
+		/* get the cairo context */
+		sub_cr = cairo_create (surface);
+		
+		{ /* clip all drawing to dest_size */
+			cairo_rectangle (sub_cr, 0, 0, sub_cr_size.width, sub_cr_size.height);
+			cairo_clip (sub_cr);
+		}
+		
+		/* create the cairo pattern */
+		pattern = cairo_pattern_create_for_surface (surface);
+		if (cairo_pattern_status (pattern) != CAIRO_STATUS_SUCCESS) {
+			/* XXX: log error message */
+			result = FALSE; /* whoops, fail */
+			goto end;
+		}
+	}
+	
+	/* draw */
+	result = drawable->class->draw (drawable, sub_cr, &sub_cr_size, style);
+	
+	if (result) {
+		/* draw the pattern */
+		gdk_cairo_rectangle (cr, &dest_area);
+		cairo_set_source (cr, pattern);
+		cairo_fill (cr);
+	}
+	
+	
+end:
+	cairo_destroy (sub_cr);
+	cairo_surface_destroy (surface);
+	
+	cairo_restore (cr);
+	
+	return result;
 }
