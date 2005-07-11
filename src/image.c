@@ -314,22 +314,37 @@ draw_image_part (tmp_drawing_data * paint_data, eXperienceImage * image, gint ar
 {
 	double scale_x, scale_y;
 	GdkPixbuf * subpixbuf;
+	cairo_pattern_t * pattern;
+	cairo_matrix_t matrix;
 	
 	if ((image->draw_components & convert[area]) && ((paint_data->src_area[area].width > 0) && (paint_data->src_area[area].height > 0))) {
 		cairo_save (paint_data->cr);
 		
-		scale_x = paint_data->scaled_width [area] / (float) paint_data->src_area[area].width;
-		scale_y = paint_data->scaled_height[area] / (float) paint_data->src_area[area].height;
+		scale_x = (double) paint_data->src_area[area].width  / (double) paint_data->scaled_width [area];
+		scale_y = (double) paint_data->src_area[area].height / (double) paint_data->scaled_height[area];
 		
 		subpixbuf = gdk_pixbuf_new_subpixbuf (paint_data->source,
 		                                      paint_data->src_area[area].x, paint_data->src_area[area].y,
 		                                      paint_data->src_area[area].width, paint_data->src_area[area].height);
 		
 		cairo_translate (paint_data->cr, x_pos, y_pos);
-		cairo_scale (paint_data->cr, scale_x, scale_y);
+		
 		gdk_cairo_set_source_pixbuf (paint_data->cr, subpixbuf, 0, 0);
 		
-		cairo_paint (paint_data->cr);
+		pattern = cairo_get_source (paint_data->cr);
+		
+		cairo_matrix_init_scale (&matrix, scale_x, scale_y);
+		cairo_pattern_set_matrix (pattern, &matrix);
+		
+		/* current trick to let it scale correctly */
+		/* why does only REFLECT work, and not REPEAT? */
+		cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REFLECT);
+		
+		cairo_rectangle (paint_data->cr, 0, 0, paint_data->scaled_width[area], paint_data->scaled_height[area]);
+		
+		cairo_fill (paint_data->cr);
+/*		cairo_clip (paint_data->cr);
+		cairo_paint (paint_data->cr);*/
 		
 		gdk_pixbuf_unref (subpixbuf);
 		
