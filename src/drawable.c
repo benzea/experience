@@ -511,6 +511,17 @@ experience_drawable_inherit_from (eXperienceDrawable * drawable, eXperienceDrawa
 
 #define BIG 20000
 
+/* experience_drawable_draw
+ * 
+ * This function basically creates a new surface. On this surface all the
+ * drawing in image.c will be done. After this, the surface will be drawn
+ * tiled.
+ * (This function needs to tile the image in some cases)
+ * 
+ * I don't think that how it currently works it is that good, but everything
+ * seems to work fine.
+ */
+
 gboolean
 experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienceSize * dest_size, GtkStyle * style)
 {

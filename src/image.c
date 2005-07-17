@@ -323,6 +323,11 @@ draw_image_part (tmp_drawing_data * paint_data, eXperienceImage * image, gint ar
 		scale_x = (double) paint_data->src_area[area].width  / (double) paint_data->scaled_width [area];
 		scale_y = (double) paint_data->src_area[area].height / (double) paint_data->scaled_height[area];
 		
+		/*
+		scale_x = (double) paint_data->scaled_width [area] / (double) paint_data->src_area[area].width;
+		scale_y = (double) paint_data->scaled_height[area] / (double) paint_data->src_area[area].height;
+		*/
+		
 		subpixbuf = gdk_pixbuf_new_subpixbuf (paint_data->source,
 		                                      paint_data->src_area[area].x, paint_data->src_area[area].y,
 		                                      paint_data->src_area[area].width, paint_data->src_area[area].height);
@@ -333,19 +338,52 @@ draw_image_part (tmp_drawing_data * paint_data, eXperienceImage * image, gint ar
 		
 		pattern = cairo_get_source (paint_data->cr);
 		
+		
 		cairo_matrix_init_scale (&matrix, scale_x, scale_y);
 		cairo_pattern_set_matrix (pattern, &matrix);
 		
-		/* current trick to let it scale correctly */
-		/* why does only REFLECT work, and not REPEAT? */
-		cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REFLECT);
+		/*
+		cairo_scale (paint_data->cr, scale_x, scale_y);
+		*/
 		
+		/* -------------------- */
+		/* I think up to this point everything is pretty straight forward.
+		 * 
+		 * The image is cut out of the original image, and a pattern is created.
+		 * Everything is moved to the correct spot, and then the scaling is applied.
+		 *
+		 * Now, there are different things I tried.
+		 */
+		
+#define POSSIBILITY 4
+#if (POSSIBILITY == 1) /* 1.png */
+		/* my first try */
+		cairo_paint (paint_data->cr);
+#endif
+#if (POSSIBILITY == 2) /* 2.png */
+		/* This just adds clipping, not a big gain. */
 		cairo_rectangle (paint_data->cr, 0, 0, paint_data->scaled_width[area], paint_data->scaled_height[area]);
-		
 		cairo_fill (paint_data->cr);
-/*		cairo_clip (paint_data->cr);
-		cairo_paint (paint_data->cr);*/
+		/* same thing could also be done with cairo_clip + cairo_paint I guess */
+#endif
+#if (POSSIBILITY == 3) /* 3.png */
+		/* The same as 2, but setting REPEAT */
+		/* The result of this is really weird, some areas are not drawn at all */
+		cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REPEAT);
+		cairo_rectangle (paint_data->cr, 0, 0, paint_data->scaled_width[area], paint_data->scaled_height[area]);
+		cairo_fill (paint_data->cr);
+#endif
+#if (POSSIBILITY == 4) /* 4.png */
+		/* The same as brefore. But setting REFLECT */
+		/* This seems to work mostly. The other problems are probably due to some
+		 * bug in the engine, but I have not looked into it closer yet.
+		 * (There is no trough, and at least the scrollbar slider contains errors) */
+		cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REFLECT);
+		cairo_rectangle (paint_data->cr, 0, 0, paint_data->scaled_width[area], paint_data->scaled_height[area]);
+		cairo_fill (paint_data->cr);
+#endif
 		
+		/* --- */
 		gdk_pixbuf_unref (subpixbuf);
 		
 		cairo_restore (paint_data->cr);
@@ -374,7 +412,8 @@ get_info (eXperienceDrawable * drawable, GtkStyle * style, eXperienceSize * size
 	}
 }
 
-
+/* This function gets called from experience_drawable_draw,
+   currently it gets a new cairo surface. For details see experience_drawable_draw */
 static gboolean
 draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienceSize * dest_size, GtkStyle * style)
 {
