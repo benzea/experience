@@ -377,7 +377,7 @@ draw_image_part (tmp_drawing_data * paint_data, eXperienceImage * image, gint ar
 		/* The same as brefore. But setting REFLECT */
 		/* This seems to work mostly. The other problems are probably due to some
 		 * bug in the engine, but I have not looked into it closer yet.
-		 * (There is no trough, and at least the scrollbar slider contains errors) */
+		 * (At least the scrollbar slider contains errors) */
 		cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REFLECT);
 		cairo_rectangle (paint_data->cr, 0, 0, paint_data->scaled_width[area], paint_data->scaled_height[area]);
 		cairo_fill (paint_data->cr);

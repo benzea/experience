@@ -439,20 +439,6 @@ experience_drawable_apply_group_settings (eXperienceDrawable * drawable, eXperie
 	experience_filter_apply_group_filter (&drawable->filter, &group->filter);
 	
 	drawable->class->apply_group_settings (drawable, group);
-	
-	/* this is a good spot for changeing the repeat from 0 to G_MAXINT */
-	if (drawable->private->repeat.left == 0) {
-		drawable->private->repeat.left = G_MAXINT;
-	}
-	if (drawable->private->repeat.right == 0) {
-		drawable->private->repeat.right = G_MAXINT;
-	}
-	if (drawable->private->repeat.top == 0) {
-		drawable->private->repeat.top = G_MAXINT;
-	}
-	if (drawable->private->repeat.bottom == 0) {
-		drawable->private->repeat.bottom = G_MAXINT;
-	}
 }
 
 void
@@ -509,7 +495,7 @@ experience_drawable_inherit_from (eXperienceDrawable * drawable, eXperienceDrawa
 	}
 }
 
-#define BIG 20000
+#define BIG 10000
 
 /* experience_drawable_draw
  * 
@@ -570,42 +556,51 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 	
 	translation.x += drawable->private->xpos.pixel;
 	translation.y += drawable->private->ypos.pixel;
-
+	
 	if (!drawable->private->dont_clip) { /* maybe do this by making the fill smaller */
-			cairo_rectangle (cr, translation.x, translation.y, real_dest_size.width, real_dest_size.height);
+			cairo_rectangle (cr, 0, 0, real_dest_size.width, real_dest_size.height);
 			cairo_clip (cr);
 	}
 	
+	cairo_translate (cr, translation.x, translation.y);
 	
-	{ /* calculate dest area */
-		dest_area.x = translation.x;
-		dest_area.y = translation.y;
-		if ((drawable->private->repeat.left == 0) || (drawable->private->repeat.right == 0)) {
+	
+	{	/* calculate dest area */
+		if (drawable->private->repeat.right == 0) {
 			dest_area.width = BIG;
 		} else {
 			dest_area.width = (drawable->private->repeat.left + drawable->private->repeat.right - 1) * repeat_distance.width;
 		}
-		if ((drawable->private->repeat.top == 0) || (drawable->private->repeat.bottom == 0)) {
+		if (drawable->private->repeat.bottom == 0) {
 			dest_area.height = BIG;
 		} else {
 			dest_area.height = (drawable->private->repeat.top + drawable->private->repeat.bottom - 1) * repeat_distance.height;
 		}
 		
 		if (drawable->private->repeat.left == 0) {
-			dest_area.x -= BIG / 2;
+			dest_area.x = -BIG;
+			dest_area.width += BIG;
+		} else {
+			dest_area.x = -(drawable->private->repeat.left - 1) * repeat_distance.width;
 		}
 		if (drawable->private->repeat.top == 0) {
-			dest_area.y -= BIG / 2;
+			dest_area.y = -BIG;
+			dest_area.height += BIG;
+		} else {
+			dest_area.y = -(drawable->private->repeat.top - 1) * repeat_distance.height;
 		}
+
 		
 		/* translate because of inner padding */
-		dest_area.x += drawable->private->inner_padding.left;
-		dest_area.y += drawable->private->inner_padding.top;
+/*		dest_area.x += drawable->private->inner_padding.left;
+		dest_area.y += drawable->private->inner_padding.top;*/
 	}
 	
+	cairo_translate (cr, drawable->private->inner_padding.left, drawable->private->inner_padding.top);
+	
 	if (drawable->private->draw_entire_only) {
-		draw_entire_area.x = 0;
-		draw_entire_area.y = 0;
+		draw_entire_area.x = -translation.x;
+		draw_entire_area.y = -translation.y;
 		draw_entire_area.width  = real_dest_size.width;
 		draw_entire_area.height = real_dest_size.height;
 		
@@ -649,8 +644,7 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 	
 	if (result) {
 		/* draw the pattern */
-		cairo_translate (cr, dest_area.x, dest_area.y);
-		cairo_rectangle (cr, 0, 0, dest_area.width, dest_area.height);
+		gdk_cairo_rectangle (cr, &dest_area);
 		
 		cairo_set_source (cr, pattern);
 		
