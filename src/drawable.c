@@ -515,11 +515,11 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 	eXperienceSize repeat_distance;
 	eXperienceSize drawable_size = {0, 0};
 	cairo_surface_t * surface;
-	cairo_pattern_t * pattern;
+	cairo_pattern_t * pattern = NULL;
 	eXperienceSize sub_cr_size;
 	GdkRectangle dest_area, draw_entire_area;
 	GdkPoint translation;
-	cairo_t * sub_cr;
+	cairo_t * sub_cr = NULL;
 	
 	eXperienceSize real_dest_size;
 	
@@ -616,7 +616,7 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 		gdk_rectangle_intersect (&dest_area, &draw_entire_area, &dest_area);
 	}
 	
-	{
+	if ((drawable->private->repeat.left != 1) || (drawable->private->repeat.right != 1) || (drawable->private->repeat.top != 1) || (drawable->private->repeat.bottom != 1)) {
 		/* create the cairo surface */
 		surface = cairo_surface_create_similar (cairo_get_target (cr), CAIRO_CONTENT_COLOR_ALPHA, repeat_distance.width, repeat_distance.height);
 		
@@ -630,6 +630,7 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 		
 		/* create the cairo pattern */
 		pattern = cairo_pattern_create_for_surface (surface);
+		cairo_surface_destroy (surface);
 		if (cairo_pattern_status (pattern) != CAIRO_STATUS_SUCCESS) {
 			/* XXX: log error message */
 			result = FALSE; /* whoops, fail */
@@ -637,24 +638,34 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 		}
 		
 		cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REPEAT);
-	}
 	
-	/* draw */
-	result = drawable->class->draw (drawable, sub_cr, &sub_cr_size, style);
-	
-	if (result) {
-		/* draw the pattern */
+		/* draw */
+		result = drawable->class->draw (drawable, sub_cr, &sub_cr_size, style);
+		
+		if (result) {
+			/* draw the pattern */
+			gdk_cairo_rectangle (cr, &dest_area);
+			
+			cairo_set_source (cr, pattern);
+			
+			cairo_fill (cr);
+		}
+	} else {
+		cairo_save (cr);
+		
 		gdk_cairo_rectangle (cr, &dest_area);
 		
-		cairo_set_source (cr, pattern);
+		cairo_clip (cr);
 		
-		cairo_fill (cr);
+		drawable->class->draw (drawable, cr, &sub_cr_size, style);
+		cairo_restore (cr);
 	}
 	
-	
 end:
-	cairo_destroy (sub_cr);
-	cairo_surface_destroy (surface);
+	if (sub_cr)
+		cairo_destroy (sub_cr);
+	if (pattern)
+		cairo_pattern_destroy (pattern);
 	
 	cairo_restore (cr);
 	
