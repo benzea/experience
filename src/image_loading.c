@@ -38,23 +38,29 @@ hash_image (eXperienceCacheImage * image)
 	return result;
 }
 
-static GdkPixbuf *
+static eXperienceRawImage *
 load_image (eXperienceCacheImage * image)
 {
 	GError *err = NULL;
-	GdkPixbuf *result = NULL, *tmp;
+	GdkPixbuf *filtered = NULL, *orig_file;
+	eXperienceRawImage * result = NULL;
 	
-	tmp  = gdk_pixbuf_new_from_file (image->file, &err);
+	orig_file  = gdk_pixbuf_new_from_file (image->file, &err);
 	
-	if (!tmp) {
+	if (!orig_file) {
 		g_warning ("eXperience engine: Cannot load pixmap file %s: %s\n",
 		           image->file, err->message);
 		g_error_free (err);
 	} else {
-		result = gdk_pixbuf_add_alpha (tmp, FALSE, 0, 0, 0);
-		g_object_unref (tmp);
+		filtered = gdk_pixbuf_add_alpha (orig_file, FALSE, 0, 0, 0);
+		g_object_unref (orig_file);
 		
-		result = experience_apply_filters(result, &image->filter);
+		filtered = experience_apply_filters(filtered, &image->filter);
+	}
+	
+	if (filtered) {
+		result = experience_raw_image_create (filtered);
+		g_object_unref (filtered);
 	}
 	
 	return result;
@@ -69,7 +75,7 @@ image_equal (eXperienceCacheImage * image1, eXperienceCacheImage * image2)
 }
 
 static eXperienceCacheImage *
-duplicate_image(eXperienceCacheImage * src)
+duplicate_image (eXperienceCacheImage * src)
 {
 	eXperienceCacheImage * dest = g_new0 (eXperienceCacheImage, 1);
 	dest->file   = g_strdup(src->file);
@@ -86,10 +92,10 @@ experience_cache_image_destroy (eXperienceCacheImage * image)
 	g_free (image);
 }
 
-GdkPixbuf *
-experience_get_image_pixbuf (eXperienceCacheImage * image, GtkStyle * style)
+eXperienceRawImage *
+experience_get_raw_image (eXperienceCacheImage * image, GtkStyle * style)
 {
-	GdkPixbuf * result;
+	eXperienceRawImage * result;
 	
 	g_return_val_if_fail (image != NULL, NULL);
 	if (image->file == NULL) {
@@ -104,7 +110,7 @@ experience_get_image_pixbuf (eXperienceCacheImage * image, GtkStyle * style)
 		image_cache = g_hash_table_new_full ((GHashFunc)  hash_image,
 		                                     (GEqualFunc) image_equal,
 		                                     (GDestroyNotify) experience_cache_image_destroy,
-		                                     (GDestroyNotify) g_object_unref);
+		                                     (GDestroyNotify) experience_raw_image_destroy);
 	}
 	
 	/* first do a lookup. */

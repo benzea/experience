@@ -40,6 +40,8 @@ libexperience_la_SOURCES = 	\
 		utils.h \
 		dynamic_color.c \
 		dynamic_color.h \
+		raw_image.c \
+		raw_image.h \
 		data.h
 
 libexperience_la_LDFLAGS = -avoid-version -module

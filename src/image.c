@@ -91,7 +91,7 @@ create (void)
 	
 	new_image->draw_components = COMPONENT_ALL;
 	
-	new_image->interp_type = GDK_INTERP_BILINEAR;
+	new_image->interp_type = CAIRO_FILTER_GOOD;
 	
 	experience_filter_init (&new_image->drawable.filter, FILTER_ALL);
 	
@@ -212,7 +212,7 @@ const eXperienceComponents convert[9] = {
 
 typedef struct {
 	cairo_t * cr;
-	GdkPixbuf * source;
+	eXperienceRawImage * source;
 	eXperienceBorder px_border;
 	GdkRectangle src_area[9];
 	gint scaled_width[9], scaled_height[9];
@@ -223,8 +223,8 @@ calculate_scaled_info (eXperienceImage * image, tmp_drawing_data * paint_data, e
 {
 	gint img_width, img_height;
 	
-	img_width  = gdk_pixbuf_get_width  (paint_data->source);
-	img_height = gdk_pixbuf_get_height (paint_data->source);
+	img_width  = paint_data->source->width;
+	img_height = paint_data->source->height;
 	
 	paint_data->px_border = image->border;
 	
@@ -313,7 +313,7 @@ static void
 draw_image_part (tmp_drawing_data * paint_data, eXperienceImage * image, gint area, gint x_pos, gint y_pos)
 {
 	double scale_x, scale_y;
-	GdkPixbuf * subpixbuf;
+	cairo_surface_t * surface;
 	cairo_pattern_t * pattern;
 	cairo_matrix_t matrix;
 	
@@ -328,16 +328,14 @@ draw_image_part (tmp_drawing_data * paint_data, eXperienceImage * image, gint ar
 		scale_y = (double) paint_data->scaled_height[area] / (double) paint_data->src_area[area].height;
 		*/
 		
-		subpixbuf = gdk_pixbuf_new_subpixbuf (paint_data->source,
-		                                      paint_data->src_area[area].x, paint_data->src_area[area].y,
-		                                      paint_data->src_area[area].width, paint_data->src_area[area].height);
+		surface = experience_raw_image_get_surface (paint_data->source, &paint_data->src_area[area]);
+		
+		pattern = cairo_pattern_create_for_surface (surface);
+		cairo_surface_destroy (surface);
+		
+		cairo_set_source (paint_data->cr, pattern);
 		
 		cairo_translate (paint_data->cr, x_pos, y_pos);
-		
-		gdk_cairo_set_source_pixbuf (paint_data->cr, subpixbuf, 0, 0);
-		
-		pattern = cairo_get_source (paint_data->cr);
-		
 		
 		cairo_matrix_init_scale (&matrix, scale_x, scale_y);
 		cairo_pattern_set_matrix (pattern, &matrix);
@@ -345,6 +343,8 @@ draw_image_part (tmp_drawing_data * paint_data, eXperienceImage * image, gint ar
 		/*
 		cairo_scale (paint_data->cr, scale_x, scale_y);
 		*/
+		
+		cairo_pattern_set_filter (pattern, image->interp_type);
 		
 		/* -------------------- */
 		/* I think up to this point everything is pretty straight forward.
@@ -384,7 +384,7 @@ draw_image_part (tmp_drawing_data * paint_data, eXperienceImage * image, gint ar
 #endif
 		
 		/* --- */
-		gdk_pixbuf_unref (subpixbuf);
+		cairo_pattern_destroy (pattern);
 		
 		cairo_restore (paint_data->cr);
 	}
@@ -395,7 +395,7 @@ get_info (eXperienceDrawable * drawable, GtkStyle * style, eXperienceSize * size
 {
 	eXperienceImage * image = (eXperienceImage*) drawable;
 	eXperienceCacheImage cache_image;
-	GdkPixbuf * source;
+	eXperienceRawImage * source;
 	
 	g_assert (drawable  != NULL);
 	g_assert (size != NULL);
@@ -404,11 +404,11 @@ get_info (eXperienceDrawable * drawable, GtkStyle * style, eXperienceSize * size
 	cache_image.file   = image->file;
 	cache_image.filter = drawable->filter;
 	
-	source = experience_get_image_pixbuf (&cache_image, style);
+	source = experience_get_raw_image (&cache_image, style);
 	
 	if (source != NULL) {
-		size->width  = gdk_pixbuf_get_width  (source);
-		size->height = gdk_pixbuf_get_height (source);
+		size->width  = source->width;
+		size->height = source->height;
 	}
 }
 
@@ -429,7 +429,7 @@ draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienceSize * dest_size, G
 	cache_image.filter = drawable->filter;
 	
 	paint_data.cr = cr;
-	paint_data.source = experience_get_image_pixbuf (&cache_image, style);
+	paint_data.source = experience_get_raw_image (&cache_image, style);
 	
 	if (paint_data.source == NULL) {
 		return FALSE;

@@ -23,6 +23,7 @@
 #define __UTILS_H
 
 #include <glib.h>
+#include <cairo.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include "experience.h"
 

@@ -1,6 +1,6 @@
-/* arch-tag: 81ccb22b-9b50-4c3a-8220-e18079a5f058 */
+/* arch-tag: 92fe4169-140d-42fb-ad4b-20554e9013ea */
 
-/*  eXperience GTK engine: image_loading.h
+/*  eXperience GTK engine: raw_image.h
  *  
  *  Copyright (C) 2004-2005  Benjamin Berg <benjamin@sipsolutions.net>
  *  
@@ -19,21 +19,20 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef __IMAGE_LOADING_H
-#define __IMAGE_LOADING_H
-
+#include <gdk/gdk.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
-#include <cairo.h>
-#include "filter.h"
-#include "raw_image.h"
 
-typedef struct {
-	gchar * file;
+struct _raw_image {
+	guchar * pixel;
 	
-	eXperienceFilter filter;
-} eXperienceCacheImage;
+	gboolean has_alpha;
+	
+	gint width;
+	gint height;
+	gint rowstride;
+};
+typedef struct _raw_image eXperienceRawImage;
 
-eXperienceRawImage * experience_get_raw_image (eXperienceCacheImage * image, GtkStyle * style);
-void experience_image_cache_destroy (void);
-
-#endif /* __IMAGE_LOADING_H */
+eXperienceRawImage * experience_raw_image_create (GdkPixbuf * pixbuf);
+cairo_surface_t * experience_raw_image_get_surface (eXperienceRawImage * raw_image, GdkRectangle * area);
+void experience_raw_image_destroy (eXperienceRawImage * raw_image);

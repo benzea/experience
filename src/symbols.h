@@ -19,6 +19,8 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <cairo.h>
+
 static struct
 {
 	gchar              *name;
@@ -176,10 +178,18 @@ static struct
 	
 	{ "all",			COMPONENT_ALL,				DRAW_COMPONENTS_IDENTIFIER },
 	
-	{ "nearest",			GDK_INTERP_NEAREST,			INTERPOLATION_TYPE_IDENTIFIER },
-	{ "tiles",				GDK_INTERP_TILES,			INTERPOLATION_TYPE_IDENTIFIER },
-	{ "bilinear",			GDK_INTERP_BILINEAR,		INTERPOLATION_TYPE_IDENTIFIER },
-	{ "hyper",				GDK_INTERP_HYPER,			INTERPOLATION_TYPE_IDENTIFIER },
+	/* whoops, now cairo can't do all of these ... */
+	{ "nearest",			CAIRO_FILTER_NEAREST,		INTERPOLATION_TYPE_IDENTIFIER },
+	{ "bilinear",			CAIRO_FILTER_BILINEAR,		INTERPOLATION_TYPE_IDENTIFIER },
+	{ "gaussian",			CAIRO_FILTER_GAUSSIAN,		INTERPOLATION_TYPE_IDENTIFIER },
+	
+	{ "fast",				CAIRO_FILTER_FAST,			INTERPOLATION_TYPE_IDENTIFIER },
+	{ "good",				CAIRO_FILTER_GOOD,			INTERPOLATION_TYPE_IDENTIFIER },
+	{ "best",				CAIRO_FILTER_BEST,			INTERPOLATION_TYPE_IDENTIFIER },
+	
+	/* deprecated, fallback to bilinear */
+	{ "tiles",				CAIRO_FILTER_BILINEAR,		INTERPOLATION_TYPE_IDENTIFIER },
+	{ "huge",				CAIRO_FILTER_GAUSSIAN,		INTERPOLATION_TYPE_IDENTIFIER },
 	
 	{ "ceil",				ROUND_CEIL,					ROUNDING_TYPE_IDENTIFIER },
 	{ "floor",				ROUND_FLOOR,				ROUNDING_TYPE_IDENTIFIER },
