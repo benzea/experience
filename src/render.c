@@ -4,15 +4,15 @@
 #include "render.h"
 #include "group.h"
 
-static cairo_t *
-experience_get_cairo_context (GdkWindow * window, GdkRectangle * object_area, GdkRectangle * area, gboolean dont_clip_to_object)
+cairo_t *
+experience_get_cairo_context (GdkWindow * window, GdkRectangle * object_area, GdkRectangle * area)
 {
 	cairo_t * cr;
 	
 	cr = gdk_cairo_create (window);
 	
 	/* set up clipping */
-	if (dont_clip_to_object) {
+	if (area != NULL) {
 		gdk_cairo_rectangle (cr, area);
 	} else {
 		gdk_cairo_rectangle (cr, object_area);
@@ -46,7 +46,6 @@ experience_render_group (eXperienceGroup *group, GdkWindow *window, GdkRectangle
 {
 	gboolean result;
 	cairo_t * cr;
-	GdkRectangle clip_area;
 	eXperienceSize size;
 	
 	g_assert (group != NULL);
@@ -63,15 +62,9 @@ experience_render_group (eXperienceGroup *group, GdkWindow *window, GdkRectangle
 	else if (object_area->height == -1)
 		gdk_window_get_size (window, NULL, &object_area->height);
 	
-	if (area == NULL) {
-		clip_area = *object_area;
-	} else {
-		clip_area = *area;
-	}
+	cr = experience_get_cairo_context (window, object_area, area);
 	
-	cr = experience_get_cairo_context (window, object_area, &clip_area, group->dont_clip);
-	
-	if (cr == NULL) { /* XXX: is the cr == NULL check correct? */
+	if (cairo_status (cr) != CAIRO_STATUS_SUCCESS) {
 		/* XXX: maybe print cairo error message. */
 		return FALSE;
 	}

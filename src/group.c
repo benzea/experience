@@ -304,6 +304,11 @@ experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * d
 	
 	real_dest_size = *dest_size;
 	
+	if (!group->dont_clip) {
+		gdk_cairo_rectangle (cr, dest_size);
+		cairo_clip (cr);
+	}
+	
 	cairo_save (cr);
 	cairo_translate (cr, group->padding.left, group->padding.top);
 	

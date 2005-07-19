@@ -26,6 +26,7 @@
 #include "image.h"
 #include "gdk/gdk.h"
 
+cairo_t * experience_get_cairo_context (GdkWindow * window, GdkRectangle * object_area, GdkRectangle * area);
 gboolean experience_render_group_to_cr (eXperienceGroup * group, cairo_t * cr, eXperienceSize * dest_size, GtkStyle * style);
 void experience_render_pixbuf_to_window (GdkWindow * window, GdkPixbuf * experience, GdkRectangle * area, GdkRegion * clip_region, gfloat opacity);
 

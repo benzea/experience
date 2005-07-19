@@ -147,39 +147,29 @@ draw_gap (GtkDrawingFunctions function,
 	#define _START 0
 	#define _GAP 1
 	#define _END 2
-#if 0	
-	gint xthickness[3], ythickness[3];
-	gint i;
-	eXperienceRcStyle * rc_style;
-	GdkRectangle object_area = { x, y, width, height },
-	             gap_area[3];
-	GdkRectangle clip_region;
-	GdkRectangle dest_area_bg, tmp_area;
-	eXperienceMatchTemp match;
-	eXperienceGroup * group_bg, * group_gap[3];
-	GdkPixbuf * pixbuf_bg        = NULL,
-	          * tmp_pixbuf;
 	
-	g_return_val_if_fail (style != NULL, FALSE);
+	gint xthickness[3], ythickness[3];
+	eXperienceGroup * group_bg, * group_gap[3];
+	eXperienceSize tmp_size;
+	eXperienceRcStyle * rc_style;
+	eXperienceMatchTemp match;
+	GdkRectangle clip_area, gap_area[3];
+	GdkRectangle object_area = { x, y, width, height };
+	cairo_t * cr;
+	gint i;
+	
+	g_return_val_if_fail (style  != NULL, FALSE);
 	g_return_val_if_fail (window != NULL, FALSE);
 	
 	rc_style = EXPERIENCE_RC_STYLE (style->rc_style);
 	
-	if ((object_area.width == -1) && (object_area.height == -1)) {
-		gdk_window_get_size(window, &object_area.width, &object_area.height);
-	} else if (width == -1)
-		gdk_window_get_size(window, &object_area.width, NULL);
-	else if (height == -1)
-		gdk_window_get_size(window, NULL, &object_area.height);
-	
 	if (area == NULL) {
-		clip_region = object_area;
+		clip_area = clip_area;
 	} else {
-		clip_region = *area;
+		clip_area = *area;
 	}
 	
-	/* ---- */
-	
+	/* get match */
 	match.detail   = (gchar*) detail;
 	match.function = function;
 
@@ -192,22 +182,16 @@ draw_gap (GtkDrawingFunctions function,
 	get_missing_match_flags (widget, &match, &object_area);
 	
 	group_bg = get_matching_group (rc_style, &match);
-	
+
 	if (group_bg == NULL) return FALSE;
 	/* ok. there is a drawable "background". */
 	
-	for (i = 0; i < 3; i++) {
-		gap_area[i] = object_area;
-	}
+	/* get the cairo context */
+	cr = experience_get_cairo_context (window, &object_area, area);
 	
-	dest_area_bg = clip_region;
+	/* ############ */
 	
-	/* render it to a experience. */
-	/* don't get it from the pixbuf cache ... */
-	pixbuf_bg = experience_render_group_to_new_pixbuf (group_bg, &dest_area_bg, &object_area, NULL, style);
-	
-	if (pixbuf_bg == NULL) return FALSE;
-	
+	/* get the gap groups */
 	/* now the other images */
 	match.function = function == FUNCTION_SHADOW ? FUNCTION_SHADOW_GAP_START : FUNCTION_BOX_GAP_START;
 	group_gap[0] = get_matching_group (rc_style, &match);
@@ -218,6 +202,7 @@ draw_gap (GtkDrawingFunctions function,
 	match.function = function == FUNCTION_SHADOW ? FUNCTION_SHADOW_GAP_END : FUNCTION_BOX_GAP_END;
 	group_gap[2] = get_matching_group (rc_style, &match);
 	
+	/* and their thickness */
 	for (i = 0; i < 3; i++) {
 		xthickness[i] = style->xthickness;
 		ythickness[i] = style->ythickness;
@@ -229,16 +214,19 @@ draw_gap (GtkDrawingFunctions function,
 		}
 	}
 	
+	/* calculate the positions of the START/GAP/END */
 	switch (gap_side) {
 		case GTK_POS_LEFT:
 			gap_area[_START].height = gap_x;
 			gap_area[_GAP]  .height = gap_width;
 			gap_area[_END]  .height = object_area.height - gap_x - gap_width;
 			
-			gap_area[_GAP]  .y += gap_x;
-			gap_area[_END]  .y += gap_x + gap_width;
+			gap_area[_START].y = 0;
+			gap_area[_GAP]  .y = gap_x;
+			gap_area[_END]  .y = gap_x + gap_width;
 			
 			for (i = 0; i < 3; i++) {
+				gap_area[i].y     = 0;
 				gap_area[i].width = xthickness[i];
 			}
 		break;
@@ -248,12 +236,13 @@ draw_gap (GtkDrawingFunctions function,
 			gap_area[_GAP]  .height = gap_width;
 			gap_area[_END]  .height = object_area.height - gap_x - gap_width;
 			
-			gap_area[_GAP]  .y += gap_x;
-			gap_area[_END]  .y += gap_x + gap_width;
+			gap_area[_START].y = 0;
+			gap_area[_GAP]  .y = gap_x;
+			gap_area[_END]  .y = gap_x + gap_width;
 			
 			for (i = 0; i < 3; i++) {
+				gap_area[i].x = object_area.width - xthickness[i];
 				gap_area[i].width = xthickness[i];
-				gap_area[i].x += object_area.width - xthickness[i];
 			}
 		break;
 		
@@ -262,10 +251,12 @@ draw_gap (GtkDrawingFunctions function,
 			gap_area[_GAP]  .width = gap_width;
 			gap_area[_END]  .width = object_area.width - gap_x - gap_width;
 			
-			gap_area[_GAP]  .x += gap_x;
-			gap_area[_END]  .x += gap_x + gap_width;
+			gap_area[_START].x = 0;
+			gap_area[_GAP]  .x = gap_x;
+			gap_area[_END]  .x = gap_x + gap_width;
 			
 			for (i = 0; i < 3; i++) {
+				gap_area[i].y = 0;
 				gap_area[i].height = ythickness[i];
 			}
 		break;
@@ -275,62 +266,55 @@ draw_gap (GtkDrawingFunctions function,
 			gap_area[_GAP]  .width = gap_width;
 			gap_area[_END]  .width = object_area.width - gap_x - gap_width;
 			
-			gap_area[_GAP]  .x += gap_x;
-			gap_area[_END]  .x += gap_x + gap_width;
+			gap_area[_GAP]  .x = gap_x;
+			gap_area[_END]  .x = gap_x + gap_width;
 			
 			for (i = 0; i < 3; i++) {
 				gap_area[i].height = ythickness[i];
-				gap_area[i].y += object_area.height - ythickness[i];
+				gap_area[i].y = object_area.height - ythickness[i];
 			}
 		break;
 	}
+
 	
-	/* clear area if wanted. */
+	/* hmm, there is nothing for masking right? (except for for masking the next drawing operation) So clearing the area for now. */
+	/* render the box */
+	tmp_size.width  = object_area.width;
+	tmp_size.height = object_area.height;
+	experience_render_group_to_cr (group_bg, cr, &tmp_size, style);
+	
 	for (i = 0; i < 3; i++) {
 		if (group_gap[i] != NULL) {
+			/* general cairo setup ... */
+			cairo_save (cr);
+			
+			/* clear the area */
 			if (group_gap[i]->clear_area) {
-				tmp_area.x = gap_area[i].x - dest_area_bg.x;
-				tmp_area.y = gap_area[i].y - dest_area_bg.y;
-				tmp_area.width  = gap_area[i].width;
-				tmp_area.height = gap_area[i].height;
+				cairo_save (cr);
 				
-				if (tmp_area.x < 0) {
-					tmp_area.width += tmp_area.x;
-					tmp_area.x = 0;
-				}
-				if (tmp_area.y < 0) {
-					tmp_area.height += tmp_area.y;
-					tmp_area.y = 0;
-				}
-				if (tmp_area.width + tmp_area.x > gdk_pixbuf_get_width (pixbuf_bg)) {
-					tmp_area.width = gdk_pixbuf_get_width (pixbuf_bg) - tmp_area.x;
-				}
-				if (tmp_area.height + tmp_area.y > gdk_pixbuf_get_height (pixbuf_bg)) {
-					tmp_area.height = gdk_pixbuf_get_height (pixbuf_bg) - tmp_area.y;
-				}
+				cairo_set_source_rgba (cr, 0, 0, 0, 0);
+				cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+				cairo_rectangle (cr, 0, 0, gap_area[i].width, gap_area[i].height);
 				
-				if ((tmp_area.width > 0) && (tmp_area.height > 0)) {
-					tmp_pixbuf = gdk_pixbuf_new_subpixbuf (pixbuf_bg, tmp_area.x, tmp_area.y, tmp_area.width, tmp_area.height);
-					gdk_pixbuf_fill (tmp_pixbuf, 0x00000000);
-					g_object_unref (tmp_pixbuf);
-				}
+				cairo_restore (cr);
 			}
+			
+			/* render the gaps */
+			tmp_size.width  = gap_area[i].width;
+			tmp_size.height = gap_area[i].height;
+			
+			experience_render_group_to_cr (group_gap[i], cr, &tmp_size, style);
+			
+			cairo_restore (cr);
 		}
 	}
+
+	cairo_destroy (cr);
 	
-	/* finaly draw everything. */
-	if (pixbuf_bg != NULL) { 
-		experience_render_pixbuf_to_window (window, pixbuf_bg, &dest_area_bg, NULL, group_bg->filter.opacity);
-	}
-	
-	for (i = 0; i < 3; i++) {
-		if (group_gap[i] != NULL) {
-			experience_render_group (group_gap[i], window, &gap_area[i], &clip_region, style);
-		}
-	}
-	
-	if (pixbuf_bg != NULL) g_object_unref (pixbuf_bg);
-#endif
+	#undef _START
+	#undef _GAP
+	#undef _END
+
 	return TRUE;
 }
 
@@ -875,15 +859,6 @@ experience_draw_extension  (GtkStyle        *style,
 	match.gap_side = 1 << gap_side;
 	
 	match.flags = MATCH_DETAIL | MATCH_FUNCTION | MATCH_SHADOW | MATCH_STATE | MATCH_GAP_SIDE;
-	
-	/* if not done there would be a gap drawn. */
-/*	this can now be done with padding and clip = FALSE
-	if (object_area.width > 0) {
-		object_area.width++;
-	}
-	if (object_area.height > 0){
-		object_area.height++;
-	}*/
 	
 	if (!draw_matching_group (style, widget, &match, window, &object_area, area, COMPONENT_ALL))
 		experience_style_parent_class->draw_extension (style, window, state_type, shadow_type, area, widget, detail, x, y, width, height, gap_side);
