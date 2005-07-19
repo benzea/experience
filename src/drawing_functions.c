@@ -226,7 +226,7 @@ draw_gap (GtkDrawingFunctions function,
 			gap_area[_END]  .y = gap_x + gap_width;
 			
 			for (i = 0; i < 3; i++) {
-				gap_area[i].y     = 0;
+				gap_area[i].x     = 0;
 				gap_area[i].width = xthickness[i];
 			}
 		break;
@@ -288,13 +288,17 @@ draw_gap (GtkDrawingFunctions function,
 			/* general cairo setup ... */
 			cairo_save (cr);
 			
+			cairo_translate (cr, gap_area[i].x, gap_area[i].y);
+			
 			/* clear the area */
 			if (group_gap[i]->clear_area) {
 				cairo_save (cr);
 				
-				cairo_set_source_rgba (cr, 0, 0, 0, 0);
+				cairo_set_source_rgba (cr, 0, 0, 0, 1);
 				cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
 				cairo_rectangle (cr, 0, 0, gap_area[i].width, gap_area[i].height);
+				
+				cairo_fill (cr);
 				
 				cairo_restore (cr);
 			}
