@@ -5,3 +5,4 @@ precious ^ChangeLog$
 junk ^configure$
 junk ^builddir$
 junk ^ac-helpers$
+junk ^aclocal.m4$
