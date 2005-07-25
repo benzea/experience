@@ -32,19 +32,11 @@ AC_SUBST(EXPERIENCE_LIBS)
 GTK_VERSION="`$PKG_CONFIG --variable=gtk_binary_version gtk+-2.0`"
 AC_SUBST(GTK_VERSION)
 
-CFLAGS="-Wall -g -Wmissing-prototypes"
+CFLAGS="$CFLAGS -Wall -g -Wmissing-prototypes"
 
 #If this is byacc, we need some other cflags.
 if test "`basename $YACC`" = "byacc" ; then
 	CFLAGS="$CFLAGS -Wno-parentheses -Dlint"
-fi
-
-AC_ARG_ENABLE(werror,
-	[  --enable-werror         compile with -Werror, this is for development],
-	enable_werror=$enableval,enable_werror=no)
-
-if test "$enable_werror" = "yes"; then
-	CFLAGS="$CFLAGS -Werror"
 fi
 
 AC_CONFIG_FILES([Makefile src/Makefile])
