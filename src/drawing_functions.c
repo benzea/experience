@@ -502,7 +502,7 @@ experience_draw_box    (GtkStyle        *style,
 {
 	GdkRectangle object_area = { x, y, width, height };
 	eXperienceMatchTemp match;
-	GtkWidget * menu_item_widget;
+	GtkWidget * menu_item_widget, * menu_widget;
 	GtkMenu * menu;
 	gchar * new_detail = NULL;
 	GtkMenuItem * menu_item;
@@ -536,7 +536,7 @@ experience_draw_box    (GtkStyle        *style,
 		if (detail != NULL) {
 			if (!(g_str_equal (detail, "trough") || g_str_equal (detail, "slider"))) {
 				/* this is not the trough so it is a stepper button. */
-				/* TODO: add a match, so that it is possible to check wether it is a secondary stepper (c/d). */
+				
 				if (GTK_IS_HSCROLLBAR (widget)) {
 					/* horizontal */
 					/* the box can be at four positions. (stepper_a, b, c, d) */
@@ -653,6 +653,80 @@ experience_draw_box    (GtkStyle        *style,
 			} else if ((menu_area.y - menu_item_area.y - menu_item_area.height - 1) == -1) {
 				/* bottom */
 				if (draw_gap (FUNCTION_BOX, style, window, state_type, shadow_type, area, widget, detail, x, y, width, height, GTK_POS_TOP, menu_item_area.x - menu_area.x, menu_item_area.width))
+					return;
+			}
+		}
+	}
+	
+	/* Code duplication ahead! */
+	if (GTK_IS_MENU_ITEM (widget) && GDK_IS_WINDOW (window)) {
+		menu_item = GTK_MENU_ITEM (widget);
+		menu_widget = GTK_WIDGET (gtk_menu_item_get_submenu (menu_item));
+		if (GTK_IS_MENU (menu_widget) && GDK_IS_WINDOW (menu_widget->window)) {
+			menu = GTK_MENU (menu_widget);
+			
+			gtk_widget_style_get (menu_widget,
+			                      "horizontal_offset", &horizontal_offset,
+			                      NULL);
+			
+			gdk_window_get_origin (menu_widget->window, &menu_area.x, &menu_area.y);
+			
+			menu_area.x += menu_widget->allocation.x;
+			menu_area.y += menu_widget->allocation.y;
+			menu_area.width  = menu_widget->allocation.width;
+			menu_area.height = menu_widget->allocation.height;
+			
+			gdk_window_get_origin (window, &menu_item_area.x, &menu_item_area.y);
+			
+			menu_item_area.x += widget->allocation.x;
+			menu_item_area.y += widget->allocation.y;
+			
+			menu_item_area.width  = widget->allocation.width;
+			menu_item_area.height = widget->allocation.height;
+			
+			if ((menu_area.x + menu_area.width - menu_item_area.x + 1) == -horizontal_offset) {
+				if (menu_area.y - menu_item_area.y < 0) {
+					menu_area.height += menu_area.y - menu_item_area.y; /* make width/height smaller */
+					menu_area.y = menu_item_area.y;
+				}
+				if (menu_area.y + menu_area.height > menu_item_area.y + menu_item_area.height) {
+					menu_area.height = menu_item_area.height - (menu_item_area.y - menu_area.y);
+				}
+				/* left */
+				if (draw_gap (FUNCTION_BOX, style, window, state_type, shadow_type, area, widget, detail, x, y, width, height, GTK_POS_LEFT, menu_area.y - menu_item_area.y, menu_area.height))
+					return;
+			} else if ((menu_area.x - menu_item_area.x - menu_item_area.height - 1) == horizontal_offset) {
+				if (menu_area.y - menu_item_area.y < 0) {
+					menu_area.height += menu_area.y - menu_item_area.y; /* make width/height smaller */
+					menu_area.y = menu_item_area.y;
+				}
+				if (menu_area.y + menu_area.height > menu_item_area.y + menu_item_area.height) {
+					menu_area.height = menu_item_area.height - (menu_item_area.y - menu_area.y);
+				}
+				/* right */
+				if (draw_gap (FUNCTION_BOX, style, window, state_type, shadow_type, area, widget, detail, x, y, width, height, GTK_POS_RIGHT, menu_area.y - menu_item_area.y, menu_area.height))
+					return;
+			} else if ((menu_area.y + menu_area.height - menu_item_area.y + 1) == 1) {
+				if (menu_area.x - menu_item_area.x < 0) {
+					menu_area.width += menu_area.x - menu_item_area.x; /* make width/height smaller */
+					menu_area.x = menu_item_area.x;
+				}
+				if (menu_area.x + menu_area.width > menu_item_area.x + menu_item_area.width) {
+					menu_area.width = menu_item_area.width - (menu_item_area.x - menu_area.x);
+				}
+				/* top */
+				if (draw_gap (FUNCTION_BOX, style, window, state_type, shadow_type, area, widget, detail, x, y, width, height, GTK_POS_TOP, menu_area.x - menu_item_area.x, menu_area.width))
+					return;
+			} else if ((menu_area.y - menu_item_area.y - menu_item_area.height - 1) == -1) {
+				if (menu_area.x - menu_item_area.x < 0) {
+					menu_area.width += menu_area.x - menu_item_area.x; /* make width/height smaller */
+					menu_area.x = menu_item_area.x;
+				}
+				if (menu_area.x + menu_area.width > menu_item_area.x + menu_item_area.width) {
+					menu_area.width = menu_item_area.width - (menu_item_area.x - menu_area.x);
+				}
+				/* bottom */
+				if (draw_gap (FUNCTION_BOX, style, window, state_type, shadow_type, area, widget, detail, x, y, width, height, GTK_POS_BOTTOM, menu_area.x - menu_item_area.x, menu_area.width))
 					return;
 			}
 		}
