@@ -30,7 +30,6 @@ experience_raw_image_create (GdkPixbuf * pixbuf)
 	int gdk_rowstride = gdk_pixbuf_get_rowstride (pixbuf);
 	int n_channels = gdk_pixbuf_get_n_channels (pixbuf);
 	int width, height;
-	cairo_format_t format;
 	guchar * pixels;
 	cairo_surface_t *surface;
 	int j;
@@ -42,19 +41,18 @@ experience_raw_image_create (GdkPixbuf * pixbuf)
 	width  = result->width;
 	height = result->height;
 	
-	result->has_alpha = gdk_pixbuf_get_has_alpha (pixbuf);
 	result->rowstride = 4 * width;
 	
-	if (result->has_alpha) {
-		format = CAIRO_FORMAT_ARGB32;
+	if (gdk_pixbuf_get_has_alpha (pixbuf)) {
+		result->format = CAIRO_FORMAT_ARGB32;
 	} else {
-		format = CAIRO_FORMAT_RGB24;
+		result->format = CAIRO_FORMAT_RGB24;
 	}
 	
 	pixels = g_malloc (4 * width * height);
 	result->pixel = pixels;
 	surface = cairo_image_surface_create_for_data ((unsigned char *)pixels,
-	                                               format,
+	                                               result->format,
 	                                               width, height, result->rowstride);
 	
 	for (j = height; j; j--)
@@ -120,16 +118,15 @@ cairo_surface_t *
 experience_raw_image_get_surface (eXperienceRawImage * raw_image, GdkRectangle * area)
 {
 	cairo_surface_t * result = NULL;
-	cairo_format_t format;
+	
+	g_assert (area->x >= 0);
+	g_assert (area->y >= 0);
+	g_assert (area->width  + area->x <= raw_image->width);
+	g_assert (area->height + area->y <= raw_image->height);
 	
 	if (raw_image != NULL) {
-		if (raw_image->has_alpha) {
-			format = CAIRO_FORMAT_ARGB32;
-		} else {
-			format = CAIRO_FORMAT_RGB24;
-		}
 		result = cairo_image_surface_create_for_data ((unsigned char *)raw_image->pixel + area->x * 4 + area->y * raw_image->rowstride,
-		                                              format,
+		                                              raw_image->format,
 		                                              area->width, area->height, raw_image->rowstride);
 	} else {
 		g_assert_not_reached ();

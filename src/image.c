@@ -136,55 +136,7 @@ inherit_from_drawable (eXperienceDrawable * drawable, eXperienceDrawable * from)
 static void
 apply_group_settings (eXperienceDrawable * drawable, eXperienceGroup * group)
 {
-	eXperienceImage * image = (eXperienceImage*) drawable;
-	eXperienceBorder border_tmp;
-	
-	g_assert (drawable != NULL);
-	g_assert (drawable->class == experience_image_class);
-	
-	if (group->filter.mirror & ORIENTATION_HORIZONTAL) {
-		border_tmp = image->border;
-		
-		image->border.right  = border_tmp.left;
-		image->border.left   = border_tmp.right;
-	}
-	
-	if (group->filter.mirror & ORIENTATION_VERTICAL) {
-		border_tmp = image->border;
-		
-		image->border.top    = border_tmp.bottom;
-		image->border.bottom = border_tmp.top;
-	}
-	
-	switch (group->filter.rotation) {
-		case ROTATE_CW:
-			border_tmp = image->border;
-			
-			image->border.top    = border_tmp.left;
-			image->border.right  = border_tmp.top;
-			image->border.bottom = border_tmp.right;
-			image->border.left   = border_tmp.bottom;
-			break;
-		case ROTATE_CCW:
-			border_tmp = image->border;
-			
-			image->border.top    = border_tmp.right;
-			image->border.right  = border_tmp.bottom;
-			image->border.bottom = border_tmp.left;
-			image->border.left   = border_tmp.top;
-			break;
-		case ROTATE_AROUND:
-			border_tmp = image->border;
-			
-			image->border.top    = border_tmp.bottom;
-			image->border.right  = border_tmp.left;
-			image->border.bottom = border_tmp.top;
-			image->border.left   = border_tmp.right;
-			break;
-		case ROTATE_NONE:
-			break;
-	}
-}
+	return;}
 
 enum {
 	NORTH,
@@ -345,43 +297,16 @@ draw_image_part (tmp_drawing_data * paint_data, eXperienceImage * image, gint ar
 		*/
 		
 		cairo_pattern_set_filter (pattern, image->interp_type);
+/*		cairo_pattern_set_filter (pattern, CAIRO_FILTER_NEAREST);*/
 		
 		/* -------------------- */
-		/* I think up to this point everything is pretty straight forward.
-		 * 
-		 * The image is cut out of the original image, and a pattern is created.
-		 * Everything is moved to the correct spot, and then the scaling is applied.
-		 *
-		 * Now, there are different things I tried.
-		 */
 		
-#define POSSIBILITY 4
-#if (POSSIBILITY == 1) /* 1.png */
-		/* my first try */
-		cairo_paint (paint_data->cr);
-#endif
-#if (POSSIBILITY == 2) /* 2.png */
-		/* This just adds clipping, not a big gain. */
-		cairo_rectangle (paint_data->cr, 0, 0, paint_data->scaled_width[area], paint_data->scaled_height[area]);
-		cairo_fill (paint_data->cr);
-		/* same thing could also be done with cairo_clip + cairo_paint I guess */
-#endif
-#if (POSSIBILITY == 3) /* 3.png */
-		/* The same as 2, but setting REPEAT */
-		/* The result of this is really weird, some areas are not drawn at all */
-		cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REPEAT);
-		cairo_rectangle (paint_data->cr, 0, 0, paint_data->scaled_width[area], paint_data->scaled_height[area]);
-		cairo_fill (paint_data->cr);
-#endif
-#if (POSSIBILITY == 4) /* 4.png */
-		/* The same as brefore. But setting REFLECT */
-		/* This seems to work mostly. The other problems are probably due to some
-		 * bug in the engine, but I have not looked into it closer yet.
-		 * (At least the scrollbar slider contains errors) */
+		/* XXX: FIXME? Is REFLECT correct ... will some other option be added
+		 * at some point, with the feature I want? ... lets see. */
+		/* XXX: THIS DOES NOT WORK AS EXPECTED! Cairo falls back to REPEAT because REFLECT is not implemented. */
 		cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REFLECT);
 		cairo_rectangle (paint_data->cr, 0, 0, paint_data->scaled_width[area], paint_data->scaled_height[area]);
 		cairo_fill (paint_data->cr);
-#endif
 		
 		/* --- */
 		cairo_pattern_destroy (pattern);

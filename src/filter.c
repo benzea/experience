@@ -231,16 +231,6 @@ experience_filter_apply_group_filter (eXperienceFilter * filter, eXperienceFilte
 	
 	filter->saturation   *= group_filter->saturation;
 	filter->brightness   += group_filter->brightness;
-	
-	if ((group_filter->rotation == ROTATE_CW) ||
-	    (group_filter->rotation == ROTATE_CCW)) {
-		tmp_mirror  = (filter->mirror & ORIENTATION_HORIZONTAL) ? ORIENTATION_VERTICAL   : 0;
-		tmp_mirror |= (filter->mirror & ORIENTATION_VERTICAL)   ? ORIENTATION_HORIZONTAL : 0;
-		filter->mirror = tmp_mirror;
-	}
-	filter->mirror = filter->mirror ^ group_filter->mirror;
-	
-	filter->rotation = (filter->rotation + group_filter->rotation) % 4;
 }
 
 

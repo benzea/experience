@@ -25,7 +25,7 @@
 struct _raw_image {
 	guchar * pixel;
 	
-	gboolean has_alpha;
+	cairo_format_t format;
 	
 	gint width;
 	gint height;

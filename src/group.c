@@ -19,6 +19,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <math.h>
 #include <string.h>
 #include <glib/gprintf.h>
 #include "group.h"
@@ -296,6 +297,9 @@ experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * d
 	GList * list;
 	eXperienceDrawable * drawable;
 	eXperienceSize real_dest_size;
+	GdkPoint undo_translation = {0, 0};
+	cairo_matrix_t matrix;
+	gint tmp;
 	
 	g_return_val_if_fail (group != NULL, FALSE);
 	g_return_val_if_fail (cr    != NULL, FALSE);
@@ -304,16 +308,66 @@ experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * d
 	
 	real_dest_size = *dest_size;
 	
+	cairo_save (cr);
 	if (!group->dont_clip) {
 		cairo_rectangle (cr, 0, 0, dest_size->width, dest_size->height);
 		cairo_clip (cr);
 	}
 	
-	cairo_save (cr);
 	cairo_translate (cr, group->padding.left, group->padding.top);
+	
 	
 	real_dest_size.width  -= group->padding.left + group->padding.right;
 	real_dest_size.height -= group->padding.top  + group->padding.bottom;
+	
+	/* first mirror */
+	cairo_matrix_init_identity (&matrix);
+	
+	if (group->filter.mirror & ORIENTATION_HORIZONTAL) {
+		undo_translation.x = real_dest_size.width;
+		matrix.xx = -1.0;
+	}
+	if (group->filter.mirror & ORIENTATION_VERTICAL) {
+		undo_translation.y = real_dest_size.height;
+		matrix.yy = -1.0;
+	}
+	
+	/* then rotate */
+	/* Rotation is broken in cairo! See bug #2488 */
+	switch (group->filter.rotation) {
+		case ROTATE_CW:
+			cairo_matrix_rotate (&matrix, M_PI_2);
+			
+			tmp = real_dest_size.width;
+			real_dest_size.width  = real_dest_size.height;
+			real_dest_size.height = tmp;
+			
+			undo_translation.x += real_dest_size.height;
+			break;
+		case ROTATE_CCW:
+			cairo_matrix_rotate (&matrix, -M_PI_2);
+			
+			tmp = real_dest_size.width;
+			real_dest_size.width  = real_dest_size.height;
+			real_dest_size.height = tmp;
+			
+			undo_translation.y += real_dest_size.width;
+			break;
+		case ROTATE_AROUND:
+			cairo_matrix_rotate (&matrix, M_PI);
+			
+			undo_translation.x += real_dest_size.height;
+			undo_translation.y += real_dest_size.width;
+			break;
+		default:
+			break;
+	}
+	
+	/* first translate */
+	cairo_translate (cr, undo_translation.x, undo_translation.y);
+	
+	/* then transform */
+	cairo_transform (cr, &matrix);
 	
 	list = group->drawables;
 	

@@ -288,153 +288,8 @@ experience_drawable_set_dont_clip (eXperienceDrawable * drawable, gboolean dont_
 void
 experience_drawable_apply_group_settings (eXperienceDrawable * drawable, eXperienceGroup * group)
 {
-	eXperiencePadding padding_tmp;
-	eXperiencePadding inner_padding_tmp;
-	eXperienceBorder  repeat_tmp;
-	eXperiencePercent percent_tmp;
-	
 	g_assert (drawable != NULL);
 	g_assert (group    != NULL);
-	
-	if (group->filter.mirror & ORIENTATION_HORIZONTAL) {
-		padding_tmp = drawable->private->padding;
-		
-		drawable->private->padding.right = padding_tmp.left;
-		drawable->private->padding.left  = padding_tmp.right;
-		
-		inner_padding_tmp = drawable->private->inner_padding;
-		
-		drawable->private->inner_padding.right  = inner_padding_tmp.left;
-		drawable->private->inner_padding.left   = inner_padding_tmp.right;
-		
-		repeat_tmp = drawable->private->repeat;
-		
-		drawable->private->repeat.right  = repeat_tmp.left;
-		drawable->private->repeat.left   = repeat_tmp.right;
-		
-		drawable->private->xpos.pixel  = -drawable->private->xpos.pixel;
-		drawable->private->xpos.widget = -drawable->private->xpos.widget;
-		drawable->private->xpos.object = -drawable->private->xpos.object;
-	}
-	
-	if (group->filter.mirror & ORIENTATION_VERTICAL) {
-		padding_tmp = drawable->private->padding;
-		
-		drawable->private->padding.top    = padding_tmp.bottom;
-		drawable->private->padding.bottom = padding_tmp.top;
-		
-		inner_padding_tmp = drawable->private->inner_padding;
-		
-		drawable->private->inner_padding.top    = inner_padding_tmp.bottom;
-		drawable->private->inner_padding.bottom = inner_padding_tmp.top;
-		
-		repeat_tmp = drawable->private->repeat;
-		
-		drawable->private->repeat.top    = repeat_tmp.bottom;
-		drawable->private->repeat.bottom = repeat_tmp.top;
-		
-		drawable->private->ypos.pixel  = -drawable->private->ypos.pixel;
-		drawable->private->ypos.widget = -drawable->private->ypos.widget;
-		drawable->private->ypos.object = -drawable->private->ypos.object;
-	}
-	
-	switch (group->filter.rotation) {
-		case ROTATE_CW:
-			padding_tmp = drawable->private->padding;
-			
-			drawable->private->padding.top    = padding_tmp.left;
-			drawable->private->padding.right  = padding_tmp.top;
-			drawable->private->padding.bottom = padding_tmp.right;
-			drawable->private->padding.left   = padding_tmp.bottom;
-			
-			inner_padding_tmp = drawable->private->inner_padding;
-			
-			drawable->private->inner_padding.top    = inner_padding_tmp.left;
-			drawable->private->inner_padding.right  = inner_padding_tmp.top;
-			drawable->private->inner_padding.bottom = inner_padding_tmp.right;
-			drawable->private->inner_padding.left   = inner_padding_tmp.bottom;
-			
-			repeat_tmp = drawable->private->repeat;
-			
-			drawable->private->repeat.top    = repeat_tmp.left;
-			drawable->private->repeat.right  = repeat_tmp.top;
-			drawable->private->repeat.bottom = repeat_tmp.right;
-			drawable->private->repeat.left   = repeat_tmp.bottom;
-			
-			percent_tmp      = drawable->private->xpos;
-			drawable->private->xpos.pixel    = -drawable->private->ypos.pixel;
-			drawable->private->xpos.widget   = -drawable->private->ypos.widget;
-			drawable->private->xpos.object   = -drawable->private->ypos.object;
-			drawable->private->ypos          = percent_tmp;
-			
-			percent_tmp    = drawable->private->width;
-			drawable->private->width         = drawable->private->height;
-			drawable->private->height        = percent_tmp;
-			break;
-		case ROTATE_CCW:
-			padding_tmp = drawable->private->padding;
-			
-			drawable->private->padding.top    = padding_tmp.right;
-			drawable->private->padding.right  = padding_tmp.bottom;
-			drawable->private->padding.bottom = padding_tmp.left;
-			drawable->private->padding.left   = padding_tmp.top;
-			
-			inner_padding_tmp = drawable->private->inner_padding;
-			
-			drawable->private->inner_padding.top    = inner_padding_tmp.right;
-			drawable->private->inner_padding.right  = inner_padding_tmp.bottom;
-			drawable->private->inner_padding.bottom = inner_padding_tmp.left;
-			drawable->private->inner_padding.left   = inner_padding_tmp.top;
-			
-			repeat_tmp = drawable->private->repeat;
-			
-			drawable->private->repeat.top    = repeat_tmp.right;
-			drawable->private->repeat.right  = repeat_tmp.bottom;
-			drawable->private->repeat.bottom = repeat_tmp.left;
-			drawable->private->repeat.left   = repeat_tmp.top;			
-			
-			percent_tmp      = drawable->private->xpos;
-			drawable->private->xpos          = drawable->private->ypos;
-			drawable->private->ypos.pixel    = -percent_tmp.pixel;
-			drawable->private->ypos.widget   = -percent_tmp.widget;
-			drawable->private->ypos.object   = -percent_tmp.object;
-			
-			percent_tmp    = drawable->private->width;
-			drawable->private->width         = drawable->private->height;
-			drawable->private->height        = percent_tmp;
-			break;
-		case ROTATE_AROUND:
-			padding_tmp = drawable->private->padding;
-			
-			drawable->private->padding.top    = padding_tmp.bottom;
-			drawable->private->padding.right  = padding_tmp.left;
-			drawable->private->padding.bottom = padding_tmp.top;
-			drawable->private->padding.left   = padding_tmp.right;
-			
-			inner_padding_tmp = drawable->private->inner_padding;
-			
-			drawable->private->inner_padding.top    = inner_padding_tmp.bottom;
-			drawable->private->inner_padding.right  = inner_padding_tmp.left;
-			drawable->private->inner_padding.bottom = inner_padding_tmp.top;
-			drawable->private->inner_padding.left   = inner_padding_tmp.right;
-			
-			repeat_tmp = drawable->private->repeat;
-			
-			drawable->private->repeat.top    = repeat_tmp.bottom;
-			drawable->private->repeat.right  = repeat_tmp.left;
-			drawable->private->repeat.bottom = repeat_tmp.top;
-			drawable->private->repeat.left   = repeat_tmp.right;
-			
-			drawable->private->xpos.pixel    = -drawable->private->xpos.pixel;
-			drawable->private->xpos.widget   = -drawable->private->xpos.widget;
-			drawable->private->xpos.object   = -drawable->private->xpos.object;
-			drawable->private->ypos.pixel    = -drawable->private->ypos.pixel;
-			drawable->private->ypos.widget   = -drawable->private->ypos.widget;
-			drawable->private->ypos.object   = -drawable->private->ypos.object;
-			break;
-		case ROTATE_NONE:
-			break;
-	}
 	
 	experience_filter_apply_group_filter (&drawable->filter, &group->filter);
 	
@@ -551,11 +406,8 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 	sub_cr_size.width  = repeat_distance.width  - (drawable->private->inner_padding.left + drawable->private->inner_padding.right);
 	sub_cr_size.height = repeat_distance.height - (drawable->private->inner_padding.top  + drawable->private->inner_padding.bottom);
 	
-	translation.x = experience_round(drawable->private->rounding, ((drawable->private->xpos.widget + 1.0) * (gfloat) real_dest_size.width  / 2.0) - ((drawable->private->xpos.widget + 1.0) * (gfloat) repeat_distance.width  / 2.0));
-	translation.y = experience_round(drawable->private->rounding, ((drawable->private->ypos.widget + 1.0) * (gfloat) real_dest_size.height / 2.0) - ((drawable->private->ypos.widget + 1.0) * (gfloat) repeat_distance.height / 2.0));
-	
-	translation.x += drawable->private->xpos.pixel;
-	translation.y += drawable->private->ypos.pixel;
+	translation.x = experience_round(drawable->private->rounding, ((drawable->private->xpos.widget + 1.0) * (gfloat) real_dest_size.width  / 2.0) - ((drawable->private->xpos.widget + 1.0) * (gfloat) repeat_distance.width  / 2.0) + drawable->private->xpos.pixel);
+	translation.y = experience_round(drawable->private->rounding, ((drawable->private->ypos.widget + 1.0) * (gfloat) real_dest_size.height / 2.0) - ((drawable->private->ypos.widget + 1.0) * (gfloat) repeat_distance.height / 2.0) + drawable->private->ypos.pixel );
 	
 	if (!drawable->private->dont_clip) { /* maybe do this by making the fill smaller */
 			cairo_rectangle (cr, 0, 0, real_dest_size.width, real_dest_size.height);
@@ -563,7 +415,6 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 	}
 	
 	cairo_translate (cr, translation.x, translation.y);
-	
 	
 	{	/* calculate dest area */
 		if (drawable->private->repeat.right == 0) {
@@ -589,11 +440,6 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 		} else {
 			dest_area.y = -(drawable->private->repeat.top - 1) * repeat_distance.height;
 		}
-
-		
-		/* translate because of inner padding */
-/*		dest_area.x += drawable->private->inner_padding.left;
-		dest_area.y += drawable->private->inner_padding.top;*/
 	}
 	
 	cairo_translate (cr, drawable->private->inner_padding.left, drawable->private->inner_padding.top);
@@ -644,21 +490,17 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 		
 		if (result) {
 			/* draw the pattern */
-			gdk_cairo_rectangle (cr, &dest_area);
+			cairo_rectangle (cr, 0, 0, dest_area.width, dest_area.height);
 			
 			cairo_set_source (cr, pattern);
 			
 			cairo_fill (cr);
 		}
 	} else {
-		cairo_save (cr);
-		
-		gdk_cairo_rectangle (cr, &dest_area);
-		
+		cairo_rectangle (cr, 0, 0, dest_area.width, dest_area.height);
 		cairo_clip (cr);
 		
 		drawable->class->draw (drawable, cr, &sub_cr_size, style);
-		cairo_restore (cr);
 	}
 	
 end:
