@@ -30,6 +30,7 @@
 #include "group.h"
 #include "image.h"
 #include "fill.h"
+#include "group_drawable.h"
 #include "match.h"
 #include "filter.h"
 #include "dynamic_color.h"
@@ -198,6 +199,7 @@ static int experience_yyerror (char*s);
 #define CURRENT_GROUP (PST != NULL ? PST->current_group : NULL)
 #define CURRENT_FILTER (PST != NULL ? PST->current_filter : NULL)
 #define CURRENT_FILL (PST != NULL ? (eXperienceFill*) PST->current_drawable : NULL)
+#define CURRENT_GROUP_DRAWABLE (PST != NULL ? (eXperienceGroupDrawable*) PST->current_drawable : NULL)
 #define CURRENT_GROUP_MATCH (CURRENT_GROUP != NULL ? &CURRENT_GROUP->match : NULL)
 
 %}
@@ -229,8 +231,9 @@ group_def:		  match_def
 
 /* group image */
 
-drawable:			  group_image_begin group_image_defs '}'	{ parse_end_drawable (pst); }
-					| fill_begin fill_defs '}'					{ parse_end_drawable (pst); }
+drawable:			  group_image_begin group_image_defs '}'		{ parse_end_drawable (pst); }
+					| fill_begin fill_defs '}'						{ parse_end_drawable (pst); }
+					| group_drawable_begin group_drawable_defs '}'	{ parse_end_drawable (pst); }
 
 group_image_begin:	  IMAGE_LITERAL uint '{'				{ parse_begin_drawable (pst, $2, experience_image_class); }
 group_image_defs:	  group_image_def
@@ -238,12 +241,17 @@ group_image_defs:	  group_image_def
 group_image_def:	  drawable_property
 					| image_property;
 
-fill_begin:			  FILL_LITERAL uint '{'				{ parse_begin_drawable (pst, $2, experience_fill_class); }
+fill_begin:			  FILL_LITERAL uint '{'					{ parse_begin_drawable (pst, $2, experience_fill_class); }
 fill_defs:			  fill_def
 					| fill_def fill_defs
 fill_def:			  drawable_property
 					| fill_property
 
+group_drawable_begin: GROUP_LITERAL uint '{'				{ parse_begin_drawable (pst, $2, experience_group_drawable_class); }
+group_drawable_defs:  group_drawable_def
+					| group_drawable_def group_drawable_defs
+group_drawable_def:	  drawable_property
+					| GROUP_LITERAL '=' STRING				{ experience_group_drawable_set_group_name (CURRENT_GROUP_DRAWABLE, $3); }
 /* icons */
 
 icons_def:		  icons_begin icon_state_defs  '}'	{ parse_end_icons (pst); }

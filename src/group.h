@@ -65,7 +65,7 @@ struct _eXperienceGroup {
 
 #include "drawable.h"
 
-eXperienceGroup * experience_group_create(gchar * name, gchar * inherit);
+eXperienceGroup * experience_group_create (gchar * name, gchar * inherit);
 
 eXperienceDrawable * experience_group_add_drawable (eXperienceGroup * group, guint number, eXperienceDrawableClass * class);
 
@@ -77,6 +77,8 @@ void experience_group_set_clear_area (eXperienceGroup * group, gboolean clear_ar
 
 void experience_group_apply_inheritance (eXperienceGroup * group);
 void experience_group_cleanup (eXperienceGroup * group);
+
+eXperienceGroup * experience_group_deep_copy (eXperienceGroup * group, gchar * prepend_name);
 
 void experience_group_ref (eXperienceGroup * group);
 void experience_group_ref_or_load (eXperienceGroup * group);

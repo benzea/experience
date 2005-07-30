@@ -222,17 +222,37 @@ experience_filter_inherit_from (eXperienceFilter * filter, eXperienceFilter * fr
 }
 
 void
-experience_filter_apply_group_filter (eXperienceFilter * filter, eXperienceFilter * group_filter)
+experience_filter_apply_filter (eXperienceFilter * filter, eXperienceFilter * from_filter)
 {
 	eXperienceOrientation tmp_mirror;
 	
+	g_assert (filter != NULL);
+	g_assert (from_filter != NULL);
+	
+	filter->saturation *= from_filter->saturation;
+	filter->opacity    *= from_filter->opacity;
+	filter->brightness += from_filter->brightness;
+	
+	if ((from_filter->rotation == ROTATE_CW) ||
+	    (from_filter->rotation == ROTATE_CCW)) {
+		tmp_mirror  = (filter->mirror & ORIENTATION_HORIZONTAL) ? ORIENTATION_VERTICAL   : 0;
+		tmp_mirror |= (filter->mirror & ORIENTATION_VERTICAL)   ? ORIENTATION_HORIZONTAL : 0;
+		filter->mirror = tmp_mirror;
+	}
+	filter->mirror = filter->mirror ^ from_filter->mirror;
+	
+	filter->rotation = (filter->rotation + from_filter->rotation) % 4;
+}
+
+void
+experience_filter_apply_group_filter (eXperienceFilter * filter, eXperienceFilter * group_filter)
+{
 	g_assert (filter != NULL);
 	g_assert (group_filter != NULL);
 	
 	filter->saturation   *= group_filter->saturation;
 	filter->brightness   += group_filter->brightness;
 }
-
 
 void
 experience_filter_set_saturation (eXperienceFilter * filter, gfloat value)

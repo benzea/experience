@@ -38,7 +38,6 @@ static GtkRcStyleClass *parent_class;
 
 static parsestate * experience_pst = NULL;
 static gchar      * theme_name = NULL;
-static GHashTable * experience_groups = NULL;
 
 GType experience_type_rc_style = 0;
 

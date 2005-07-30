@@ -11,6 +11,15 @@ experience_get_cairo_context (GdkWindow * window, GdkRectangle * object_area, Gd
 	
 	cr = gdk_cairo_create (window);
 	
+	if ((object_area->width == -1) && (object_area->height == -1)) {
+		gdk_drawable_get_size (window, &object_area->width, &object_area->height);
+	} else if (object_area->width == -1) {
+		gdk_drawable_get_size (window, &object_area->width, NULL);
+	} else if (object_area->height == -1) {
+		gdk_drawable_get_size (window, NULL, &object_area->height);
+	}
+	
+
 	/* set up clipping */
 	if (area != NULL) {
 		gdk_cairo_rectangle (cr, area);
@@ -19,7 +28,7 @@ experience_get_cairo_context (GdkWindow * window, GdkRectangle * object_area, Gd
 	}
 	
 	cairo_clip (cr);
-
+	
 	cairo_translate (cr, object_area->x, object_area->y);
 	
 	return cr;
@@ -55,17 +64,10 @@ experience_render_group (eXperienceGroup *group, GdkWindow *window, GdkRectangle
 	g_return_val_if_fail (window != NULL, FALSE);
 	g_return_val_if_fail (style != NULL, FALSE);
 	
-	if ((object_area->width == -1) && (object_area->height == -1)) {
-		gdk_window_get_size (window, &object_area->width, &object_area->height);
-	} else if (object_area->width == -1)
-		gdk_window_get_size (window, &object_area->width, NULL);
-	else if (object_area->height == -1)
-		gdk_window_get_size (window, NULL, &object_area->height);
-	
 	cr = experience_get_cairo_context (window, object_area, area);
 	
 	if (cairo_status (cr) != CAIRO_STATUS_SUCCESS) {
-		/* XXX: maybe print cairo error message. */
+		experience_cairo_error (cairo_status (cr));
 		return FALSE;
 	}
 	
@@ -73,6 +75,11 @@ experience_render_group (eXperienceGroup *group, GdkWindow *window, GdkRectangle
 	size.height = object_area->height;
 	
 	result = experience_render_group_to_cr (group, cr, &size, style);
+	
+	if (cairo_status (cr) != CAIRO_STATUS_SUCCESS) {
+		experience_cairo_error (cairo_status (cr));
+		return FALSE;
+	}
 	
 	cairo_destroy (cr);
 	

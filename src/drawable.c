@@ -478,7 +478,7 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 		pattern = cairo_pattern_create_for_surface (surface);
 		cairo_surface_destroy (surface);
 		if (cairo_pattern_status (pattern) != CAIRO_STATUS_SUCCESS) {
-			/* XXX: log error message */
+			experience_cairo_error (cairo_pattern_status (pattern));
 			result = FALSE; /* whoops, fail */
 			goto end;
 		}

@@ -1,12 +1,8 @@
  * everywhere where there is a g_assert, should be another check later, so
    that I can compile with G_DISABLE_ASSERT. And if I somehow force a crash
    in some cases.
- * Cleanup the gap drawing code.
  * Add the no_inherit flag to _all_ options.
-
-Big things:
- * cairo port (maybe should wait until cairo 0.5 and for gtk versions that
-   depend on cairo)
-   cairo 0.5 seem to be out now. so maybe I should get this started soon.
+ * rename experience_group_cleanup to something more usefull, since it
+   doesn't do any cleanup!
 
 arch-tag: 45211614-40fb-4fb6-adaa-d0f8235c2841

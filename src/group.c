@@ -43,14 +43,14 @@ experience_group_create (gchar * name, gchar * inherit)
 	new_group->name = g_strdup(name);
 	new_group->parent_name = g_strdup(inherit);
 	
-	experience_filter_init (&new_group->filter, FILTER_ALL);
+	experience_filter_init (&new_group->filter, FILTER_SATURATION | FILTER_BRIGHTNESS | FILTER_OPACITY | FILTER_ROTATE | FILTER_MIRROR);
 	
 	g_sprintf (buffer, "group \"%s\"", name);
 	experience_filter_set_info_string (&new_group->filter, buffer);
 	
 	new_group->line_width = 2;
 	
-	experience_match_init(&new_group->match);
+	experience_match_init (&new_group->match);
 	
 	return new_group;
 }
@@ -286,7 +286,37 @@ experience_group_cleanup (eXperienceGroup * group)
 		link = g_list_next (link);
 	}
 	
+	/* Clean out all the stuff in the filter, that is applied to the drawables.
+	 * This needs to be done, so that I can create copies, and then apply the
+	 * filters again. (For embeding groups inside a drawable) */
+	group->filter.saturation = 0;
+	group->filter.brightness = 0;
+	
 	return;
+}
+
+eXperienceGroup *
+experience_group_deep_copy (eXperienceGroup * group, gchar * prepend_name)
+{
+	eXperienceGroup * new_group;
+	gchar * new_name;
+	
+	g_assert (group != NULL);
+	if (prepend_name != NULL) {
+		new_name = g_strjoin (NULL, prepend_name, "->", group->name, NULL);
+	} else {
+		new_name = g_strdup (group->name);
+	}
+	
+	new_group = experience_group_create (new_name, NULL);
+	
+	/* copy all data from this group to the new one, by forcing an inheritance. */
+	new_group->parent = group;
+	experience_group_apply_inheritance (new_group);
+	
+	g_free (new_name);
+	
+	return new_group;
 }
 
 /*---------*/
@@ -295,10 +325,13 @@ gboolean
 experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * dest_size, GtkStyle * style)
 {
 	GList * list;
+	cairo_surface_t * orig_surface, * sub_surface = NULL;
+	cairo_t * sub_cr;
 	eXperienceDrawable * drawable;
 	eXperienceSize real_dest_size;
 	GdkPoint undo_translation = {0, 0};
 	cairo_matrix_t matrix;
+	gboolean result = TRUE;
 	gint tmp;
 	
 	g_return_val_if_fail (group != NULL, FALSE);
@@ -308,15 +341,42 @@ experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * d
 	
 	real_dest_size = *dest_size;
 	
+	orig_surface = cairo_get_target (cr);
+	
+	/* There are two cases:
+	 *  1. opacity == 1
+	 *  2. opacity < 1 
+	 * If the opacity is 1, we will not create a new surface, and clip the old one ...
+	 * otherwise we create a surface of the correct size. */
+	
 	cairo_save (cr);
-	if (!group->dont_clip) {
-		cairo_rectangle (cr, 0, 0, dest_size->width, dest_size->height);
-		cairo_clip (cr);
+	
+	if (group->filter.opacity == 1) {
+		if (!group->dont_clip) {
+			cairo_rectangle (cr, 0, 0, dest_size->width, dest_size->height);
+			cairo_clip (cr);
+		}
+		
+		sub_cr = cr; /* draw directly on the cr */
+		
+		cairo_translate (cr, group->padding.left, group->padding.top);
+	} else {
+		/* create a subsurface */
+/*		if (!group->dont_clip) {*/
+		/* XXX: BUG! It now clips always! */
+			sub_surface = cairo_surface_create_similar (orig_surface, CAIRO_CONTENT_COLOR_ALPHA,
+			                                            dest_size->width, dest_size->height);
+			sub_cr = cairo_create (sub_surface);
+			cairo_surface_destroy (sub_surface);
+			
+			cairo_translate (cr, group->padding.left, group->padding.top);
+/*		} else {
+			sub_surface = cairo_surface_create_similar (orig_surface, CAIRO_CONTENT_COLOR_ALPHA,
+			                                            
+		}*/
 	}
 	
-	cairo_translate (cr, group->padding.left, group->padding.top);
-	
-	
+	/* create a new surface */
 	real_dest_size.width  -= group->padding.left + group->padding.right;
 	real_dest_size.height -= group->padding.top  + group->padding.bottom;
 	
@@ -364,28 +424,39 @@ experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * d
 	}
 	
 	/* first translate */
-	cairo_translate (cr, undo_translation.x, undo_translation.y);
+	cairo_translate (sub_cr, undo_translation.x, undo_translation.y);
 	
 	/* then transform */
-	cairo_transform (cr, &matrix);
+	cairo_transform (sub_cr, &matrix);
 	
 	list = group->drawables;
 	
 	while (list != NULL) {
 		drawable = list->data;
 		
-		if (!experience_drawable_draw (drawable, cr, &real_dest_size, style)) {
+		if (!experience_drawable_draw (drawable, sub_cr, &real_dest_size, style)) {
 			g_printerr ("Couldn't draw widget, because \"%s %i\" in group \"%s\" couldn't be drawn.\n", drawable->class->object_type, drawable->number, group->name);
 			
-			cairo_restore (cr);
-			return FALSE;
+			result = FALSE;
+			goto end;
 		}
 		
 		list = g_list_next (list);
 	}
 	
+	if (group->filter.opacity != 1) { /* we created a subsurface */
+		cairo_set_source_surface (cr, sub_surface, 0, 0);
+		
+		cairo_paint_with_alpha (cr, group->filter.opacity);
+	}
+	
+end:
+	if (sub_cr != cr) {
+		cairo_destroy (sub_cr); /* destroy cairo context */
+	}
+	
 	cairo_restore (cr);
-	return TRUE;
+	return result;
 }
 
 

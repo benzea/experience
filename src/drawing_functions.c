@@ -122,6 +122,7 @@ draw_matching_group (GtkStyle *style, GtkWidget * widget, eXperienceMatchTemp * 
 			return TRUE;
 		}
 	}
+	
 	return FALSE;
 }
 
@@ -275,9 +276,21 @@ draw_gap (GtkDrawingFunctions function,
 			}
 		break;
 	}
-
 	
-	/* hmm, there is nothing for masking right? (except for for masking the next drawing operation) So clearing the area for now. */
+	/* clip the unwanted regions */
+	for (i = 0; i < 3; i++) {
+		if (group_gap[i] != NULL) {
+			/* clear the area */
+			if (group_gap[i]->clear_area) {
+				/* XXX: BUG! This forces cliping! */
+				cairo_rectangle (cr, 0, 0, width, height);
+				cairo_rectangle (cr, gap_area[i].x, gap_area[i].y, gap_area[i].width, gap_area[i].height);
+				cairo_set_fill_rule (cr, CAIRO_FILL_RULE_EVEN_ODD);
+				cairo_clip (cr);
+			}
+		}
+	}
+	
 	/* render the box */
 	tmp_size.width  = object_area.width;
 	tmp_size.height = object_area.height;
@@ -289,19 +302,6 @@ draw_gap (GtkDrawingFunctions function,
 			cairo_save (cr);
 			
 			cairo_translate (cr, gap_area[i].x, gap_area[i].y);
-			
-			/* clear the area */
-			if (group_gap[i]->clear_area) {
-				cairo_save (cr);
-				
-				cairo_set_source_rgba (cr, 0, 0, 0, 1);
-				cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-				cairo_rectangle (cr, 0, 0, gap_area[i].width, gap_area[i].height);
-				
-				cairo_fill (cr);
-				
-				cairo_restore (cr);
-			}
 			
 			/* render the gaps */
 			tmp_size.width  = gap_area[i].width;

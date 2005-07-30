@@ -28,6 +28,7 @@
 #include "rcstyle.h"
 #include "image.h"
 #include "fill.h"
+#include "group_drawable.h"
 
 G_MODULE_EXPORT void theme_init (GTypeModule *module);
 G_MODULE_EXPORT void theme_exit (void);
@@ -55,6 +56,8 @@ theme_init (GTypeModule *module)
 {
 	experience_g_quark = g_quark_from_string("experience_theme_engine");
 	
+	experience_groups = NULL;
+	
 	experience_rc_style_register_type (module);
 	experience_style_register_type (module);
 	
@@ -67,6 +70,7 @@ theme_init (GTypeModule *module)
 	
 	experience_image_init_class ();
 	experience_fill_init_class ();
+	experience_group_drawable_init_class ();
 }
 
 G_MODULE_EXPORT void

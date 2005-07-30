@@ -17,6 +17,8 @@ libexperience_la_SOURCES = 	\
 		image.h \
 		fill.c \
 		fill.h \
+		group_drawable.c \
+		group_drawable.h \
 		image_loading.c \
 		image_loading.h \
 		main.c \

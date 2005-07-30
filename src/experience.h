@@ -34,6 +34,10 @@
 	} \
 } 
 
+#define experience_cairo_error(status) { \
+	experience_warning ("cairo error: %s", cairo_status_to_string (status)); \
+}
+
 #define CLAMP_COLOR(color) CLAMP(color, 0, GDK_COLOR_MAX)
 
 enum {
@@ -47,6 +51,7 @@ GQuark experience_g_quark;
 gboolean print_widget_path;
 gboolean warn_invalid_gtype;
 gboolean parser_error;
+GHashTable * experience_groups;
 
 /* All GTK drawing functions: */
 typedef enum {

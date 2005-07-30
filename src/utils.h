@@ -37,7 +37,9 @@
 
 /* Macro used to ensure valid values */
 #define CLAMP_UCHAR(value) CLAMP(value,0,255)
-                                  
+
+/* The numbers are specified here, so that it is possible to do some
+ * calculations more easily. */
 typedef enum {
 	ROTATE_NONE   = 0,
 	ROTATE_CW     = 1,

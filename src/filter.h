@@ -73,6 +73,7 @@ void experience_filter_set_info_string (eXperienceFilter * filter, gchar * info_
 guint experience_filter_hash (eXperienceFilter * filter, guint hash_value);
 gboolean experience_filter_equal (eXperienceFilter * filter1, eXperienceFilter * filter2);
 void experience_filter_inherit_from (eXperienceFilter * filter, eXperienceFilter * from);
+void experience_filter_apply_filter (eXperienceFilter * filter, eXperienceFilter * from_filter);
 void experience_filter_apply_group_filter (eXperienceFilter * filter, eXperienceFilter * group_filter);
 
 void experience_filter_set_saturation (eXperienceFilter * filter, gfloat value);
