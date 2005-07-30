@@ -302,17 +302,17 @@ void experience_filter_add_recolor_color (eXperienceFilter * filter, GdkColor co
 	g_assert (filter != NULL);
 	
 	if (!(filter->allowed & FILTER_RECOLOR)) {
-		filter_warning ("You can't use recoloring in this context!\n");
+		filter_warning (filter, "You can't use recoloring in this context!\n");
 		return;
 	}
 	
 	if (filter->recolor_mode == RECOLOR_RGB_GRADIENT) {
-		filter_warning ("Tried to set a recolor color, but there is already a gradient to be recolored!\n");
+		filter_warning (filter, "Tried to set a recolor color, but there is already a gradient to be recolored!\n");
 		return;
 	}
 	
 	if (g_hash_table_lookup (filter->recolor_colors, &color) != NULL) {
-		filter_warning ("Tried to assigne multiple recolor colors to one color!\n");
+		filter_warning (filter, "Tried to assigne multiple recolor colors to one color!\n");
 		return;
 	}
 	
@@ -334,12 +334,12 @@ void experience_filter_set_recolor_gradient (eXperienceFilter * filter, eXperien
 	g_assert (filter != NULL);
 	
 	if (!(filter->allowed & FILTER_RECOLOR)) {
-		filter_warning ("You can't use recoloring in this context!\n");
+		filter_warning (filter, "You can't use recoloring in this context!\n");
 		return;
 	}
 	
 	if (filter->recolor_mode != RECOLOR_NONE) {
-		filter_warning ("Tried to set a \"recolor_gradient\" but some other recoloring was already set!\n");
+		filter_warning (filter, "Tried to set a \"recolor_gradient\" but some other recoloring was already set!\n");
 		return;
 	}
 	
@@ -378,7 +378,7 @@ void experience_filter_add_mirror (eXperienceFilter * filter, eXperienceOrientat
 	
 	/* allow mirroring multiple times */
 	if (!(filter->allowed & FILTER_MIRROR)) {
-		filter_warning ("You can't use mirroring in this context!\n");
+		filter_warning (filter, "You can't use mirroring in this context!\n");
 		return;
 	}
 	
@@ -390,7 +390,7 @@ void experience_filter_set_rotation (eXperienceFilter * filter, eXperienceRotate
 {
 	g_assert (filter != NULL);
 	
-	CHECK_AND_SET (FILTER_ROTATION, "You can't use rotation in this context!\n", "Tried to set rotation more than once!\n");
+	CHECK_AND_SET (FILTER_ROTATE, "You can't use rotation in this context!\n", "Tried to set rotation more than once!\n");
 	
 	filter->rotation = rotation;
 }
