@@ -71,5 +71,7 @@ http://benjamin.sipsolutions.net/archives/benjamin@sipsolutions.net--2005.
 
 The development branch for the eXperience engine is
 experience-gtk-engine--devo--0
+There is now also a cairo branch
+experience-gtk-engine--cairo--0
 
 arch-tag: 49408faa-7841-402e-a6fc-657044178f58

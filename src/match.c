@@ -60,7 +60,7 @@ experience_pattern_spec_unref (eXperiencePatternSpec * pspec)
 		g_free (pspec);
 	}
 	/* this would happen, if a pspec is unrefed too often */
-	g_assert (pspec->refcount > 0);
+	g_assert (pspec->refcount >= 0);
 }
 
 static void
@@ -91,11 +91,11 @@ experience_match_finalize (eXperienceMatch * match)
 	GList * item;
 	gvalue_list_item * list_item;
 	
-	g_assert(match != NULL);
+	g_assert (match != NULL);
 	
-	/* destroy the GPatternSpecs */
-	g_list_foreach (match->details, (GFunc) g_pattern_spec_free, NULL);
-	g_list_foreach (match->program_names, (GFunc) g_pattern_spec_free, NULL);
+	/* destroy the eXperiencePatternSpecs */
+	g_list_foreach (match->details, (GFunc) experience_pattern_spec_unref, NULL);
+	g_list_foreach (match->program_names, (GFunc) experience_pattern_spec_unref, NULL);
 	
 	/* and the lists */
 	g_list_free (match->details);
@@ -387,6 +387,15 @@ match_to_pattern_spec_list (GList * list, gchar * pattern)
 	return FALSE;
 }
 
+static void
+get_property (eXperienceMatchTemp * to, gchar * property, GValue * property_value)
+{
+	/* I created this function, so that I can override some properties
+	 * with values from the engine/another widget ... well it doesn't work
+	 * for comboboxes ... */
+	g_object_get_property (to->widget, property, property_value);
+}
+
 gboolean
 experience_match (eXperienceMatch * match, eXperienceMatchTemp * to)
 {
@@ -448,7 +457,8 @@ experience_match (eXperienceMatch * match, eXperienceMatchTemp * to)
 			if ((param_spec != NULL) && (list_item->array != NULL)) {
 				memset (&property_value, 0, sizeof(GValue));
 				g_value_init (&property_value, param_spec->value_type);
-				g_object_get_property (to->widget, list_item->property, &property_value);
+				
+				get_property (to, list_item->property, &property_value);
 				
 				property_type = G_VALUE_TYPE (&property_value);
 				

@@ -1,3 +1,9 @@
+30.07.2005
+ * Cleaned up some error messages in filter.c
+
+28.07.2005 (not sure exactly?)
+ * menu_items are now also drawn as box_gap. (As before the menus)
+
 19.06.2005
  * Added support for * and ? in the detail string, and program name. This
    might be usefull for the program name matching.

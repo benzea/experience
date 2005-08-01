@@ -150,7 +150,7 @@ enum {
 	CENTER,
 } eXperienceAreas;
 
-const eXperienceComponents convert[9] = {
+static const eXperienceComponents convert[9] = {
 	COMPONENT_NORTH,
 	COMPONENT_SOUTH,
 	COMPONENT_EAST,
