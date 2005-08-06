@@ -35,7 +35,7 @@
 } 
 
 #define experience_cairo_error(status) { \
-	experience_warning ("cairo error: %s", cairo_status_to_string (status)); \
+	experience_warning ("cairo error: %s\n", cairo_status_to_string (status)); \
 }
 
 #define CLAMP_COLOR(color) CLAMP(color, 0, GDK_COLOR_MAX)

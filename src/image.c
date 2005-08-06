@@ -275,31 +275,19 @@ draw_image_part (tmp_drawing_data * paint_data, eXperienceImage * image, gint ar
 		scale_x = (double) paint_data->src_area[area].width  / (double) paint_data->scaled_width [area];
 		scale_y = (double) paint_data->src_area[area].height / (double) paint_data->scaled_height[area];
 		
-		/*
-		scale_x = (double) paint_data->scaled_width [area] / (double) paint_data->src_area[area].width;
-		scale_y = (double) paint_data->scaled_height[area] / (double) paint_data->src_area[area].height;
-		*/
-		
 		surface = experience_raw_image_get_surface (paint_data->source, &paint_data->src_area[area]);
 		
 		pattern = cairo_pattern_create_for_surface (surface);
 		cairo_surface_destroy (surface);
 		
-		cairo_set_source (paint_data->cr, pattern);
-		
 		cairo_translate (paint_data->cr, x_pos, y_pos);
+		
+		cairo_set_source (paint_data->cr, pattern);
 		
 		cairo_matrix_init_scale (&matrix, scale_x, scale_y);
 		cairo_pattern_set_matrix (pattern, &matrix);
 		
-		/*
-		cairo_scale (paint_data->cr, scale_x, scale_y);
-		*/
-		
 		cairo_pattern_set_filter (pattern, image->interp_type);
-/*		cairo_pattern_set_filter (pattern, CAIRO_FILTER_NEAREST);*/
-		
-		/* -------------------- */
 		
 		/* XXX: FIXME? Is REFLECT correct ... will some other option be added
 		 * at some point, with the feature I want? ... lets see. */

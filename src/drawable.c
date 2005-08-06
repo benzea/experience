@@ -350,7 +350,7 @@ experience_drawable_inherit_from (eXperienceDrawable * drawable, eXperienceDrawa
 	}
 }
 
-#define BIG 10000
+#define BIG 1000
 
 /* experience_drawable_draw
  * 
@@ -402,12 +402,12 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 	repeat_distance.width  = drawable->private->width. widget * real_dest_size.width  + drawable->private->width. object * drawable_size.width  + drawable->private->width. pixel;
 	repeat_distance.height = drawable->private->height.widget * real_dest_size.height + drawable->private->height.object * drawable_size.height + drawable->private->height.pixel;
 	
-	/* apply inner padding. save into padded_width, padded_height */
+	/* apply inner padding */
 	sub_cr_size.width  = repeat_distance.width  - (drawable->private->inner_padding.left + drawable->private->inner_padding.right);
 	sub_cr_size.height = repeat_distance.height - (drawable->private->inner_padding.top  + drawable->private->inner_padding.bottom);
 	
-	translation.x = experience_round(drawable->private->rounding, ((drawable->private->xpos.widget + 1.0) * (gfloat) real_dest_size.width  / 2.0) - ((drawable->private->xpos.widget + 1.0) * (gfloat) repeat_distance.width  / 2.0) + drawable->private->xpos.pixel);
-	translation.y = experience_round(drawable->private->rounding, ((drawable->private->ypos.widget + 1.0) * (gfloat) real_dest_size.height / 2.0) - ((drawable->private->ypos.widget + 1.0) * (gfloat) repeat_distance.height / 2.0) + drawable->private->ypos.pixel );
+	translation.x = experience_round(drawable->private->rounding, ((drawable->private->xpos.widget + 1.0) * (gfloat) real_dest_size.width  / 2.0) - ((drawable->private->xpos.object + 1.0) * (gfloat) repeat_distance.width  / 2.0) + drawable->private->xpos.pixel);
+	translation.y = experience_round(drawable->private->rounding, ((drawable->private->ypos.widget + 1.0) * (gfloat) real_dest_size.height / 2.0) - ((drawable->private->ypos.object + 1.0) * (gfloat) repeat_distance.height / 2.0) + drawable->private->ypos.pixel);
 	
 	if (!drawable->private->dont_clip) { /* maybe do this by making the fill smaller */
 			cairo_rectangle (cr, 0, 0, real_dest_size.width, real_dest_size.height);
@@ -469,7 +469,7 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 		/* get the cairo context */
 		sub_cr = cairo_create (surface);
 		
-		{ /* clip all drawing to dest_size */
+		{	/* clip all drawing to dest_size */
 			cairo_rectangle (sub_cr, 0, 0, sub_cr_size.width, sub_cr_size.height);
 			cairo_clip (sub_cr);
 		}
@@ -482,22 +482,22 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 			result = FALSE; /* whoops, fail */
 			goto end;
 		}
-		
+		/* XXX: This does not work for rotated surfaces! */
 		cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REPEAT);
-	
+		
 		/* draw */
 		result = drawable->class->draw (drawable, sub_cr, &sub_cr_size, style);
 		
 		if (result) {
 			/* draw the pattern */
-			cairo_rectangle (cr, 0, 0, dest_area.width, dest_area.height);
+			cairo_rectangle (cr, dest_area.x, dest_area.y, dest_area.width, dest_area.height);
 			
 			cairo_set_source (cr, pattern);
 			
 			cairo_fill (cr);
 		}
 	} else {
-		cairo_rectangle (cr, 0, 0, dest_area.width, dest_area.height);
+		cairo_rectangle (cr, dest_area.x, dest_area.y, dest_area.width, dest_area.height);
 		cairo_clip (cr);
 		
 		drawable->class->draw (drawable, cr, &sub_cr_size, style);

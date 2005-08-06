@@ -329,7 +329,6 @@ experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * d
 	cairo_t * sub_cr;
 	eXperienceDrawable * drawable;
 	eXperienceSize real_dest_size;
-	GdkPoint undo_translation = {0, 0};
 	cairo_matrix_t matrix;
 	gboolean result = TRUE;
 	gint tmp;
@@ -369,7 +368,7 @@ experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * d
 			sub_cr = cairo_create (sub_surface);
 			cairo_surface_destroy (sub_surface);
 			
-			cairo_translate (cr, group->padding.left, group->padding.top);
+			cairo_translate (sub_cr, group->padding.left, group->padding.top);
 /*		} else {
 			sub_surface = cairo_surface_create_similar (orig_surface, CAIRO_CONTENT_COLOR_ALPHA,
 			                                            
@@ -384,12 +383,12 @@ experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * d
 	cairo_matrix_init_identity (&matrix);
 	
 	if (group->filter.mirror & ORIENTATION_HORIZONTAL) {
-		undo_translation.x = real_dest_size.width;
 		matrix.xx = -1.0;
+		matrix.x0 = real_dest_size.width;
 	}
 	if (group->filter.mirror & ORIENTATION_VERTICAL) {
-		undo_translation.y = real_dest_size.height;
 		matrix.yy = -1.0;
+		matrix.y0 = real_dest_size.height;
 	}
 	
 	/* then rotate */
@@ -398,33 +397,32 @@ experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * d
 		case ROTATE_CW:
 			cairo_matrix_rotate (&matrix, M_PI_2);
 			
+			matrix.x0 += real_dest_size.width;
+			
+			/* switch width<->height */
 			tmp = real_dest_size.width;
 			real_dest_size.width  = real_dest_size.height;
 			real_dest_size.height = tmp;
-			
-			undo_translation.x += real_dest_size.height;
 			break;
 		case ROTATE_CCW:
 			cairo_matrix_rotate (&matrix, -M_PI_2);
 			
+			matrix.y0 += real_dest_size.height;
+			
+			/* switch width<->height */
 			tmp = real_dest_size.width;
 			real_dest_size.width  = real_dest_size.height;
 			real_dest_size.height = tmp;
-			
-			undo_translation.y += real_dest_size.width;
 			break;
 		case ROTATE_AROUND:
 			cairo_matrix_rotate (&matrix, M_PI);
 			
-			undo_translation.x += real_dest_size.height;
-			undo_translation.y += real_dest_size.width;
+			matrix.x0 += real_dest_size.height;
+			matrix.y0 += real_dest_size.width;
 			break;
 		default:
 			break;
 	}
-	
-	/* first translate */
-	cairo_translate (sub_cr, undo_translation.x, undo_translation.y);
 	
 	/* then transform */
 	cairo_transform (sub_cr, &matrix);
