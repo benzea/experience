@@ -1,3 +1,9 @@
+gtk2-engines-experience (0.9.8-1) stable; urgency=low
+
+  * Bugfix release
+
+ -- Benjamin Berg <benjamin@sipsolutions.net>  Thu,  4 Aug 2005 22:11:46 +0200
+
 gtk2-engines-experience (0.9.7) unstable; urgency=low
 
   * New release, some new features.

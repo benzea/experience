@@ -36,6 +36,8 @@ static struct
 	{ "has_default",		HAS_DEFAULT_LITERAL },
 	{ "has_focus",			HAS_FOCUS_LITERAL },
 	{ "expander_style",		EXPANDER_STYLE_LITERAL },
+	{ "window_edge",		WINDOW_EDGE_LITERAL },
+	{ "continue_side",		CONTINUE_SIDE_LITERAL },
 
 	{ "file",				FILE_LITERAL },
 	{ "border",				BORDER_LITERAL },
@@ -51,7 +53,9 @@ static struct
 	{ "tile",				TILE_LITERAL },
 	
 	{ "shadow", 			SHADOW_LITERAL },
-	{ "none",			NONE_LITERAL },
+	{ "none",				NONE_LITERAL },
+	{ "both",				BOTH_LITERAL },
+	{ "single",				SINGLE_LITERAL },
 	
 	{ "orientation",		ORIENTATION_LITERAL },
 	

@@ -30,6 +30,197 @@
 
 #define REPLACE_WITH_LINE_WIDTH -2
 
+typedef enum {
+	CONTINUE_INVALID = 0,
+        CONTINUE_LEFT    = 1 << 0,
+        CONTINUE_RIGHT   = 1 << 1,
+        CONTINUE_NONE    = 1 << 2,
+} tmpContinueSide;
+
+/* macro to exchange the last two bits, so that RTL locales work correctly */
+#define experience_widget_continue_swap_if_rtl(widget, sides) { \
+	if (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL) \
+		sides = (sides & ~3) | ((sides&1)<<1) | ((sides&2)>>1); \
+}
+
+typedef enum {
+	GROUPABLE_NO,
+	GROUPABLE_YES,
+	GROUPABLE_SKIP,
+} is_groupable_result;
+
+static is_groupable_result
+is_groupable_widget (GtkWidget * widget)
+{
+	gboolean visible;
+	is_groupable_result result = GROUPABLE_YES;
+	
+	if (!widget)
+		return GROUPABLE_NO;
+	if (!GTK_IS_WIDGET (widget))
+		return GROUPABLE_NO;
+	
+	/* always return FALSE if it is a seperator */
+	if (GTK_IS_SEPARATOR_TOOL_ITEM (widget))
+		return GROUPABLE_NO;
+	
+	/* skip not visible objects that can be chained */
+	g_object_get (G_OBJECT (widget), "visible", &visible, NULL);
+	
+	if (!visible)
+		result = GROUPABLE_SKIP;
+	
+	if (GTK_IS_MENU_TOOL_BUTTON (widget)) {
+		return result;
+	}
+	if (GTK_IS_TOOL_BUTTON (widget)) {
+		return result;
+	}
+	if (GTK_IS_BUTTON (widget)) {
+		return result;
+	}
+	return GROUPABLE_NO;
+}
+
+/* This code has problems with galeon. This is because galeon always uses
+ * something GtkMenuToolItem like. It just sets the other arrow_button invisible. */
+static tmpContinueSide
+get_button_location_parent (GtkWidget * widget)
+{
+	tmpContinueSide result = CONTINUE_INVALID;
+	GtkBox * box;
+	GtkToolbar * toolbar;
+	gint widget_pos, item;
+	GList * list;
+	GList * widget_list_item, * list_item;
+	is_groupable_result groupable;
+	
+	/* check whether the parent is a GtkContainer
+	 * This is the case for both GtkToolItem and GtkToolbar */
+	if (!widget->parent)
+		return CONTINUE_INVALID;
+	
+	/* there are multiple possibilities:
+	 *  1. This is a GtkToolbarItem, this is just a container for one widget. So walk up the tree.
+	 *  2. This is a GtkToolbar. Just check both sides then.
+	 *  3. We have got a GtkBox. This means we need to check both sides. Also we might need to walk up in the tree. */
+	
+	if (GTK_IS_TOOL_ITEM (widget->parent)) {
+		/* walk up the tree */
+		result |= get_button_location_parent (widget->parent);
+	} else
+	
+	/* first the toolbar case*/
+	if (GTK_IS_TOOLBAR (widget->parent) && GTK_IS_TOOL_ITEM (widget)) {
+		result = CONTINUE_NONE;
+		
+		toolbar = GTK_TOOLBAR (widget->parent);
+		widget_pos = gtk_toolbar_get_item_index (toolbar, GTK_TOOL_ITEM (widget)); /* get the position */
+		
+		groupable = GROUPABLE_NO;
+		item = widget_pos - 1;
+		while ((groupable = is_groupable_widget ((GtkWidget*) gtk_toolbar_get_nth_item (toolbar, item))) == GROUPABLE_SKIP) {
+			item--;
+		}
+		if (groupable == GROUPABLE_YES) {
+			result |= CONTINUE_LEFT;
+		}
+		
+		groupable = GROUPABLE_NO;
+		item = widget_pos + 1;
+		while ((groupable = is_groupable_widget ((GtkWidget*) gtk_toolbar_get_nth_item (toolbar, item))) == GROUPABLE_SKIP) {
+			item++;
+		}
+		if (groupable == GROUPABLE_YES) {
+			result |= CONTINUE_RIGHT;
+		}
+		/* mirror if RTL */
+		experience_widget_continue_swap_if_rtl (widget->parent, result);
+	} else
+	
+	if (GTK_IS_HBOX (widget->parent)) {
+		/* there are two again possibilities:
+		 *  1. Just a Box
+		 *  2. A GtkToolMenuButton
+		 * For now this difference doesn't matter ... it decides just if we will walk up the tree */
+		
+		box = GTK_BOX (widget->parent);
+		
+		if (gtk_box_get_spacing (box) == 0) {
+			result = CONTINUE_NONE;
+			
+			/* only works if spacing is 0 */
+			
+			/* this is pretty inefficient, since the list is created just for us, but whatever*/
+			list = gtk_container_get_children (GTK_CONTAINER (box));
+			
+			/* get the widget */
+			widget_list_item = g_list_find (list, widget);
+			
+			if (!widget_list_item) {
+				experience_warning ("something went wrong, object not in the box?\n");
+				g_list_free (list);
+				return CONTINUE_NONE;
+			}
+			groupable = GROUPABLE_NO;
+			list_item = g_list_previous (widget_list_item);
+			while (list_item && ((groupable = is_groupable_widget ((GtkWidget*) list_item->data)) == GROUPABLE_SKIP)) {
+				list_item = g_list_previous (list_item);
+			}
+			if (groupable == GROUPABLE_YES) {
+				result |= CONTINUE_LEFT;
+			}
+			
+			groupable = GROUPABLE_NO;
+			list_item = g_list_next (widget_list_item);
+			while (list_item && ((groupable = is_groupable_widget ((GtkWidget*) list_item->data)) == GROUPABLE_SKIP)) {
+				list_item = g_list_next (list_item);
+			}
+			if (groupable == GROUPABLE_YES) {
+				result |= CONTINUE_RIGHT;
+			}
+			
+			/* mirror if RTL */
+			experience_widget_continue_swap_if_rtl (widget->parent, result);
+			
+			g_list_free (list);
+		}
+		
+		/* OK, we got everything so far. So now we just need to walk up, if the parent
+		 * of the box is a GtkToolItem (GtkMenuToolItem, GulToolbutton, etc.) */
+		if (GTK_WIDGET (box)->parent && GTK_IS_TOOL_ITEM (GTK_WIDGET (box)->parent)) {
+			result |= get_button_location_parent (GTK_WIDGET (box)->parent);
+		}
+	}
+	return result;
+}
+
+static void
+get_continue_side (eXperienceMatchTemp * match)
+{
+	tmpContinueSide sides = CONTINUE_INVALID;
+	
+	match->flags |= MATCH_CONTINUE_SIDE;
+	match->continue_side = EXPERIENCE_CONTINUE_SIDE_NONE;
+	
+	/* This only works for buttons (we always draw buttons ... even if it is inside a GtkToolItem) */
+	if (!(match->widget && GTK_IS_BUTTON (match->widget)))
+		return;
+	
+	/* ok, got a button. Now we need to move up to the parent */
+	sides = sides | get_button_location_parent (GTK_WIDGET (match->widget));
+	
+	if ((sides & CONTINUE_RIGHT) && (sides & CONTINUE_LEFT)) {
+		match->continue_side |= EXPERIENCE_CONTINUE_SIDE_BOTH;
+	} else if (sides & CONTINUE_LEFT) {
+		match->continue_side |= EXPERIENCE_CONTINUE_SIDE_LEFT;
+	} else if (sides & CONTINUE_RIGHT) {
+		match->continue_side |= EXPERIENCE_CONTINUE_SIDE_RIGHT;
+	} else if (sides & CONTINUE_NONE) {
+		match->continue_side |= EXPERIENCE_CONTINUE_SIDE_SINGLE;
+	}
+}
+
 static void
 get_missing_match_flags (GtkWidget * widget, eXperienceMatchTemp * match, GdkRectangle * object_area)
 {
@@ -48,11 +239,19 @@ get_missing_match_flags (GtkWidget * widget, eXperienceMatchTemp * match, GdkRec
 					match->orientation = 1 << GTK_ORIENTATION_VERTICAL;
 				}
 			}
+			if (GTK_IS_TOOLBAR (widget)) {
+				match->flags |= MATCH_ORIENTATION;
+				match->orientation = 1 << gtk_toolbar_get_orientation (GTK_TOOLBAR (widget));
+			}
 		}
 		
 		if (!(match->flags & MATCH_TEXT_DIRECTION)) {
 			match->flags |= MATCH_TEXT_DIRECTION;
 			match->text_direction = 1 << gtk_widget_get_direction (widget);
+		}
+		
+		if (!(match->flags & MATCH_CONTINUE_SIDE)) {
+			get_continue_side (match);
 		}
 	}
 	

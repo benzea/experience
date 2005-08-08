@@ -1,7 +1,16 @@
-30.07.2005
+04.08.2005 (0.9.8)
+ * Releasing the different bugfixes.
+
+01.08.2005
+ * Bugfix. Now gcalctool works correctly (and maybe other apps)
+
+31.07.2005
+ * Fixed a bad bug. Found it only by accident though.
+
+30.07.2005 (0.9.7)
  * Cleaned up some error messages in filter.c
 
-28.07.2005 (not sure exactly?)
+28.07.2005
  * menu_items are now also drawn as box_gap. (As before the menus)
 
 19.06.2005

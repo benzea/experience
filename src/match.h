@@ -39,6 +39,7 @@ typedef enum {
 	MATCH_WINDOW_EDGE     = 1 << 10,
 	MATCH_TEXT_DIRECTION  = 1 << 11,
 	MATCH_PROGRAM_NAME    = 1 << 12,
+	MATCH_CONTINUE_SIDE   = 1 << 13,
 } eXperienceMatchFlags;
 
 typedef enum {
@@ -51,6 +52,20 @@ typedef enum {
 	EXPERIENCE_TRUE  = 1 << 0,
 	EXPERIENCE_FALSE = 1 << 1
 } eXperienceBoolean;
+
+typedef enum {
+	EXPERIENCE_CONTINUE_SIDE_NONE   = 1 << 0, /* invalid */
+	EXPERIENCE_CONTINUE_SIDE_LEFT   = 1 << 1,
+	EXPERIENCE_CONTINUE_SIDE_RIGHT  = 1 << 2,
+	EXPERIENCE_CONTINUE_SIDE_BOTH   = 1 << 3,
+	EXPERIENCE_CONTINUE_SIDE_SINGLE = 1 << 4, /* single button */
+} eXperienceContinueSide;
+
+/* macro to exchange the last two bits, so that RTL locales work correctly */
+#define experience_widget_continue_swap_if_rtl(widget, sides) { \
+	if (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL) \
+		sides = (sides & ~3) | ((sides&1)<<1) | ((sides&2)>>1); \
+}
 
 typedef struct {
 	eXperienceMatchFlags flags;
@@ -68,6 +83,7 @@ typedef struct {
 	GtkPositionType     gap_side;
 	GtkExpanderStyle    expander_style;
 	GdkWindowEdge       window_edge;
+	eXperienceContinueSide continue_side;
 } eXperienceMatch;
 
 #define POS_NONE (GTK_POS_BOTTOM + 1)
@@ -88,6 +104,7 @@ typedef struct {
 	eXperienceGapPos    gap_pos;
 	GtkExpanderStyle    expander_style;
 	GdkWindowEdge       window_edge;
+	eXperienceContinueSide continue_side;
 } eXperienceMatchTemp;
 
 void experience_match_init (eXperienceMatch * match);
@@ -104,6 +121,7 @@ void experience_match_set_gap_sides        (eXperienceMatch * match, GtkPosition
 void experience_match_set_expander_styles  (eXperienceMatch * match, GtkExpanderStyle expander_style);
 void experience_match_set_window_edges     (eXperienceMatch * match, GdkWindowEdge window_edge);
 void experience_match_set_text_directions  (eXperienceMatch * match, GtkTextDirection text_direction);
+void experience_match_set_continue_sides   (eXperienceMatch * match, eXperienceContinueSide sides);
 
 void experience_match_set_property (eXperienceMatch * match, gchar * property, GValueArray * properties);
 

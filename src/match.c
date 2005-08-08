@@ -124,7 +124,7 @@ experience_match_set_states (eXperienceMatch * match, GtkStateType state)
 	g_assert (match != NULL);
 	
 	match->flags |= MATCH_STATE;
-	match->state = state;
+	match->state |= state;
 }
 
 void
@@ -133,7 +133,7 @@ experience_match_set_functions (eXperienceMatch * match, GtkDrawingFunctions fun
 	g_assert (match != NULL);
 	
 	match->flags |= MATCH_FUNCTION;
-	match->functions = functions;
+	match->functions |= functions;
 }
 
 void
@@ -142,7 +142,7 @@ experience_match_set_text_directions (eXperienceMatch * match, GtkTextDirection 
 	g_assert (match != NULL);
 	
 	match->flags |= MATCH_TEXT_DIRECTION;
-	match->text_directions = text_directions;
+	match->text_directions |= text_directions;
 }
 
 /* adds a GPatternSpec to a g_list if it is not in the list. */
@@ -201,7 +201,7 @@ experience_match_set_shadows (eXperienceMatch * match, GtkShadowType shadow)
 	g_assert (match != NULL);
 	
 	match->flags |= MATCH_SHADOW;
-	match->shadow = shadow;
+	match->shadow |= shadow;
 }
 
 void
@@ -210,7 +210,7 @@ experience_match_set_arrow_directions (eXperienceMatch * match, GtkArrowType arr
 	g_assert (match != NULL);
 	
 	match->flags |= MATCH_ARROW_DIRECTION;
-	match->arrow_direction = arrow_direction;
+	match->arrow_direction |= arrow_direction;
 }
 
 void
@@ -219,7 +219,7 @@ experience_match_set_orientations (eXperienceMatch * match, GtkOrientation orien
 	g_assert (match != NULL);
 	
 	match->flags |= MATCH_ORIENTATION;
-	match->orientation = orientation;
+	match->orientation |= orientation;
 }
 
 void
@@ -228,7 +228,7 @@ experience_match_set_gap_sides (eXperienceMatch * match, GtkPositionType gap_sid
 	g_assert (match != NULL);
 	
 	match->flags |= MATCH_GAP_SIDE;
-	match->gap_side = gap_side;
+	match->gap_side |= gap_side;
 }
 
 void
@@ -237,7 +237,7 @@ experience_match_set_expander_styles (eXperienceMatch * match, GtkExpanderStyle 
 	g_assert (match != NULL);
 	
 	match->flags |= MATCH_EXPANDER_STYLE;
-	match->expander_style = expander_style;
+	match->expander_style |= expander_style;
 }
 
 void
@@ -246,7 +246,16 @@ experience_match_set_window_edges (eXperienceMatch * match, GdkWindowEdge window
 	g_assert (match != NULL);
 	
 	match->flags |= MATCH_WINDOW_EDGE;
-	match->window_edge = window_edge;
+	match->window_edge |= window_edge;
+}
+
+void
+experience_match_set_continue_sides (eXperienceMatch * match, eXperienceContinueSide sides)
+{
+	g_assert (match != NULL);
+	
+	match->flags |= MATCH_CONTINUE_SIDE;
+	match->continue_side |= sides;
 }
 
 /* ---- */
@@ -340,6 +349,7 @@ experience_match_inherit (eXperienceMatch * match, eXperienceMatch * from)
 	if (!(match->flags & MATCH_GAP_SIDE))        match->gap_side       = from->gap_side;
 	if (!(match->flags & MATCH_EXPANDER_STYLE))  match->expander_style = from->expander_style;
 	if (!(match->flags & MATCH_WINDOW_EDGE))     match->window_edge    = from->window_edge;
+	if (!(match->flags & MATCH_CONTINUE_SIDE))   match->continue_side  = from->continue_side;
 	
 	item = g_list_first (from->property_list);
 	while (item != NULL) {
@@ -430,8 +440,11 @@ experience_match (eXperienceMatch * match, eXperienceMatchTemp * to)
 		if (!(match->expander_style & to->expander_style)) return FALSE;
 	if (flags & MATCH_WINDOW_EDGE)
 		if (!(match->window_edge & to->window_edge)) return FALSE;
-	if (flags & MATCH_TEXT_DIRECTION) /* cheap check */
+	if (flags & MATCH_TEXT_DIRECTION)
 		if (!(match->text_directions & to->text_direction)) return FALSE;
+	if (flags & MATCH_CONTINUE_SIDE) {
+		if (!(match->continue_side & to->continue_side)) return FALSE;
+	}
 	
 	/* now to the more expensive ones */
 	if (flags & MATCH_DETAIL)

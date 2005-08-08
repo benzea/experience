@@ -88,7 +88,10 @@ parsestate * pst;
 %token				GAP_SIDE_LITERAL
 %token				EXPANDER_STYLE_LITERAL
 %token				WINDOW_EDGE_LITERAL
+%token				CONTINUE_SIDE_LITERAL
 %token				NONE_LITERAL
+%token				BOTH_LITERAL
+%token				SINGLE_LITERAL
 
 %token				SATURATION_LITERAL
 %token				PIXELATE_LITERAL
@@ -171,6 +174,8 @@ parsestate * pst;
 %type <v_uint>		position
 %type <v_uint>		expander_styles
 %type <v_uint>		window_edges
+%type <v_uint>		continue_side
+%type <v_uint>		continue_sides
 %type <v_uint>		draw_component
 %type <v_uint>		draw_components
 %type <v_uint>		filter_mirror
@@ -279,6 +284,7 @@ match_def:	  STATE_LITERAL          '=' states				{ experience_match_set_states 
 			| GAP_SIDE_LITERAL       '=' positions			{ experience_match_set_gap_sides       (CURRENT_GROUP_MATCH, $3); }
 			| EXPANDER_STYLE_LITERAL '=' expander_styles	{ experience_match_set_expander_styles (CURRENT_GROUP_MATCH, $3); }
 			| WINDOW_EDGE_LITERAL    '=' window_edges		{ experience_match_set_window_edges    (CURRENT_GROUP_MATCH, $3); }
+			| CONTINUE_SIDE_LITERAL  '=' continue_sides		{ experience_match_set_continue_sides  (CURRENT_GROUP_MATCH, $3); }
 			| FUNCTION_LITERAL       '=' functions			{ experience_match_set_functions       (CURRENT_GROUP_MATCH, $3); }
 			| TEXT_DIRECTION_LITERAL '=' text_directions	{ experience_match_set_text_directions (CURRENT_GROUP_MATCH, $3); }
 			| PROPERTY_LITERAL STRING '=' gvalues			{ experience_match_set_property        (CURRENT_GROUP_MATCH, $2, $4); }
@@ -345,6 +351,16 @@ expander_styles:  EXPANDER_STYLE_IDENTIFIER						{ $$ = 1 << $1; }
 /*--*/
 window_edges:	  WINDOW_EDGE_IDENTIFIER						{ $$ = 1 << $1; }
 				| WINDOW_EDGE_IDENTIFIER ',' window_edges		{ $$ = 1 << $1 | $3; }
+
+/*--*/
+
+continue_side:	  NONE_LITERAL		{ $$ = EXPERIENCE_CONTINUE_SIDE_NONE; }
+				| LEFT_RIGHT		{ $$ = 1 << ($1 + 1); }
+				| BOTH_LITERAL		{ $$ = EXPERIENCE_CONTINUE_SIDE_BOTH; }
+				| SINGLE_LITERAL	{ $$ = EXPERIENCE_CONTINUE_SIDE_SINGLE; }
+
+continue_sides:	  continue_side							{ $$ = $1; }
+				| continue_side ',' continue_sides 		{ $$ = $1 | $3; }
 
 /* image properties */
 drawable_property: 	  padding_def

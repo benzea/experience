@@ -7,7 +7,7 @@ AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_AUX_DIR([ac-helpers])
 
 #information on package
-AM_INIT_AUTOMAKE(gtk-engine-experience, 0.9.7)
+AM_INIT_AUTOMAKE(gtk-engine-experience, 0.9.8)
 
 
 #checks for programs
