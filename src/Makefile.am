@@ -46,6 +46,6 @@ libexperience_la_SOURCES = 	\
 		raw_image.h \
 		data.h
 
-libexperience_la_LDFLAGS = -avoid-version -module
+libexperience_la_LDFLAGS = -avoid-version -module -no-undefined
 libexperience_la_LIBADD = $(EXPERIENCE_LIBS)
 AM_YFLAGS = -p experience_yy
