@@ -31,7 +31,6 @@ experience_raw_image_create (GdkPixbuf * pixbuf)
 	int n_channels = gdk_pixbuf_get_n_channels (pixbuf);
 	int width, height;
 	guchar * pixels;
-	cairo_surface_t *surface;
 	int j;
 	
 	result = g_new0 (eXperienceRawImage, 1);
@@ -51,9 +50,6 @@ experience_raw_image_create (GdkPixbuf * pixbuf)
 	
 	pixels = g_malloc (4 * width * height);
 	result->pixel = pixels;
-	surface = cairo_image_surface_create_for_data ((unsigned char *)pixels,
-	                                               result->format,
-	                                               width, height, result->rowstride);
 	
 	for (j = height; j; j--)
 	{

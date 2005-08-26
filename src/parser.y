@@ -321,9 +321,9 @@ text_directions:	  text_direction						{ $$ = $1; }
 
 gvalue:			  BOOLEAN								{ $$ = g_new0 (GValue, 1); g_value_init ($$, G_TYPE_BOOLEAN); g_value_set_boolean ($$, $1); }
 				| float									{ $$ = g_new0 (GValue, 1); g_value_init ($$, G_TYPE_FLOAT);   g_value_set_float   ($$, $1); }
-				| STRING								{ $$ = g_new0 (GValue, 1); g_value_init ($$, G_TYPE_STRING);  g_value_set_string  ($$, $1); }
-gvalues:		  gvalue								{ $$ = g_value_array_new(1); g_value_array_append ($$, $1); }
-				| gvalues ',' gvalue					{ g_value_array_append ($1, $3); $$ = $1; }
+				| STRING								{ $$ = g_new0 (GValue, 1); g_value_init ($$, G_TYPE_STRING);  g_value_take_string ($$, $1); }
+gvalues:		  gvalue								{ $$ = g_value_array_new(1); g_value_array_append ($$, $1); g_value_unset ($1); g_free ($1); }
+				| gvalues ',' gvalue					{ g_value_array_append ($1, $3); g_value_unset ($3); g_free ($3); $$ = $1; }
 				| DONT_INHERIT_LITERAL					{ $$ = NULL; }
 
 /*--*/

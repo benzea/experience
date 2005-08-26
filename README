@@ -19,7 +19,8 @@ Bugs
 ====
 
 Known bugs:
- * There are no known engine bugs right now.
+ * There are no known engine bugs right now. (Well actually, I believe there
+   might be problems with global variables)
 
 Other bugs that deserve mentioning (but are not engine bugs):
  * There is a galeon crash with the eXperience theme. This crash is not

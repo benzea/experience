@@ -32,14 +32,8 @@
 typedef struct _eXperienceDrawable eXperienceDrawable;
 typedef struct _eXperienceDrawableClass eXperienceDrawableClass;
 
+/* this is a cheap trick, to get the circular dependency working */
 #include "group.h"
-
-typedef struct {
-	gfloat widget;
-	gfloat object;
-	gint   pixel;
-} eXperiencePercent;
-
 
 struct _eXperienceDrawableClass {
 	gchar * object_type;

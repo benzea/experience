@@ -1,3 +1,10 @@
+25.08.2005 (0.10.0)
+ * Fixed a lot of leaks. Some of them critical.
+
+07.08.2005
+ * Added some experimental code so that it is possible to visually group
+   buttons in toolbars, etc.
+
 04.08.2005 (0.9.8)
  * Releasing the different bugfixes.
 

@@ -178,6 +178,8 @@ experience_match_add_detail (eXperienceMatch * match, gchar * detail)
 	pspec = experience_pattern_spec_create (detail);
 	match->details = add_pattern_spec_to_list (match->details, pspec);
 	experience_pattern_spec_unref (pspec);
+	
+	g_free (detail);
 }
 
 void
@@ -193,6 +195,8 @@ experience_match_add_program_name (eXperienceMatch * match, gchar * program_name
 	pspec = experience_pattern_spec_create (program_name);
 	match->program_names = add_pattern_spec_to_list (match->program_names, pspec);
 	experience_pattern_spec_unref (pspec);
+	
+	g_free (program_name);
 }
 
 void
@@ -295,25 +299,36 @@ experience_match_set_property (eXperienceMatch * match, gchar * property, GValue
 	
 	g_assert (match != NULL);
 	
-	item = get_value_array(match, property, TRUE);
+	item = get_value_array (match, property, TRUE);
 	
 	if (properties == NULL) {
+		/* needs to be deleted again, this is kinda stupid */
+		g_value_array_free (item->array);
 		item->array = NULL;
+		g_free (property);
 		return;
 	}
 	
 	if (item->array == NULL) {
+		/* needs to be deleted again, this is kinda stupid */
+		g_value_array_free (item->array);
 		item->array = properties;
+		g_free (property);
 		return;
 	}
 	
+	new_value = g_new0 (GValue, 1);
 	for (i = 0; i < properties->n_values; i++) {
-		new_value = g_new0 (GValue, 1);
 		g_value_init (new_value, G_VALUE_TYPE (g_value_array_get_nth (properties, i)));
 		
 		g_value_copy (g_value_array_get_nth (properties, i), new_value);
 		g_value_array_append (item->array, new_value);
+		
+		/* g_value_array_append copies the value so we need to free everything again */
+		g_value_unset (new_value);
 	}
+	g_free (new_value);
+	
 	g_value_array_free (properties);
 	g_free (property);
 }

@@ -55,6 +55,13 @@ destroy (eXperienceDrawable * drawable)
 	g_free (fill);
 }
 
+typedef struct {
+	eXperienceFill * fill;
+	GdkPixbuf * pixbuf;
+	gint width;
+	gint height;
+} get_image_info;
+
 static gboolean
 draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienceSize * dest_size, GtkStyle * style)
 {

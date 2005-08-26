@@ -43,4 +43,10 @@ typedef struct {
 	gint height;
 } eXperienceSize;
 
+typedef struct {
+	gfloat widget;
+	gfloat object;
+	gint   pixel;
+} eXperiencePercent;
+
 #endif /* __DATA_H */
