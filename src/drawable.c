@@ -406,8 +406,8 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 	sub_cr_size.width  = repeat_distance.width  - (drawable->private->inner_padding.left + drawable->private->inner_padding.right);
 	sub_cr_size.height = repeat_distance.height - (drawable->private->inner_padding.top  + drawable->private->inner_padding.bottom);
 	
-	translation.x = experience_round(drawable->private->rounding, ((drawable->private->xpos.widget + 1.0) * (gfloat) real_dest_size.width  / 2.0) - ((drawable->private->xpos.object + 1.0) * (gfloat) repeat_distance.width  / 2.0) + drawable->private->xpos.pixel);
-	translation.y = experience_round(drawable->private->rounding, ((drawable->private->ypos.widget + 1.0) * (gfloat) real_dest_size.height / 2.0) - ((drawable->private->ypos.object + 1.0) * (gfloat) repeat_distance.height / 2.0) + drawable->private->ypos.pixel);
+	translation.x = experience_round(drawable->private->rounding, ((drawable->private->xpos.widget + 1.0) * (gfloat) real_dest_size.width  / 2.0) - ((drawable->private->xpos.widget + 1.0) * (gfloat) repeat_distance.width  / 2.0) + drawable->private->xpos.pixel + drawable->private->xpos.object * drawable_size.width);
+	translation.y = experience_round(drawable->private->rounding, ((drawable->private->ypos.widget + 1.0) * (gfloat) real_dest_size.height / 2.0) - ((drawable->private->ypos.widget + 1.0) * (gfloat) repeat_distance.height / 2.0) + drawable->private->ypos.pixel + drawable->private->xpos.object * drawable_size.height);
 	
 	if (!drawable->private->dont_clip) { /* maybe do this by making the fill smaller */
 			cairo_rectangle (cr, 0, 0, real_dest_size.width, real_dest_size.height);
