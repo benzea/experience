@@ -56,6 +56,7 @@ experience_rc_style_register_type (GTypeModule *module)
 			sizeof (eXperienceRcStyle),
 			0,              /* n_preallocs */
 			(GInstanceInitFunc) experience_rc_style_init,
+			NULL
 		};
 		
 		experience_type_rc_style = g_type_module_register_type (module,
