@@ -1,8 +1,0 @@
-# arch-tag: 368cb9bf-c3c7-4850-9d2a-086296fdfe2d
-
-precious ^Makefile.in$
-precious ^ChangeLog$
-junk ^configure$
-junk ^builddir$
-junk ^ac-helpers$
-junk ^aclocal.m4$
