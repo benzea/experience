@@ -1,5 +1,3 @@
-/* arch-tag: 43e21a92-ae82-468c-9c48-1aa2dff4beb9 */
-
 /*  eXperience GTK engine: drawing_functions.c
  *  
  *  Copyright (C) 2004-2005  Benjamin Berg <benjamin@sipsolutions.net>

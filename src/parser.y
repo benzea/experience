@@ -1,5 +1,3 @@
-/* arch-tag: 9d6b3fb9-d972-45ab-b09c-4065d4506be8 */
-
 /*  eXperience GTK engine: parser.y
  *  
  *  Copyright (C) 2004-2005  Benjamin Berg <benjamin@sipsolutions.net>

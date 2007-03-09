@@ -1,5 +1,3 @@
-## arch-tag: 2f85a6f2-8413-4f20-955d-8dfdfb9969aa
-
 INCLUDES = $(EXPERIENCE_CFLAGS)
 
 enginedir = $(libdir)/gtk-2.0/$(GTK_VERSION)/engines

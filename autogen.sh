@@ -1,5 +1,4 @@
 #!/bin/sh
-# arch-tag: 26988b6a-9b64-4b9a-9ee7-0bbf8dd6a206
 
 if ! [ -d 'ac-helpers' ] ; then
   if ! mkdir 'ac-helpers' ; then

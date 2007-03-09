@@ -1,5 +1,3 @@
-/* arch-tag: 6750c768-cd2d-4659-bf04-8ba8ab506b64 */
-
 #include <cairo.h>
 #include "render.h"
 #include "group.h"

@@ -1,6 +1,3 @@
-/* arch-tag: f0552231-42b8-4fd2-8cc7-130c94c56132 */
-
-
 /*  eXperience GTK engine: rcstyle.c
  *  
  *  Copyright (C) 2004-2005  Benjamin Berg <benjamin@sipsolutions.net>

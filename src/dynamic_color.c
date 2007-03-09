@@ -1,5 +1,3 @@
-/* arch-tag: 145834b2-d1bf-447a-8de1-1675f09eabfd */
-
 /*  eXperience GTK engine: dynamic_color.c
  *  
  *  Copyright (C) 2004-2005  Benjamin Berg <benjamin@sipsolutions.net>

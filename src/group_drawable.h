@@ -1,5 +1,3 @@
-/* arch-tag: 9c995cf1-01d9-470b-a028-471209ab73f6 */
-
 /*  eXperience GTK engine: group_drawable.h
  *  
  *  Copyright (C) 2004-2005  Benjamin Berg <benjamin@sipsolutions.net>

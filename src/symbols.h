@@ -1,5 +1,3 @@
-/* arch-tag: ce515cb3-76d6-4214-bacf-026aa7397c97 */
-
 /*  eXperience GTK engine: symbols.h
  *  
  *  Copyright (C) 2004-2005  Benjamin Berg <benjamin@sipsolutions.net>

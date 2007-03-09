@@ -1,5 +1,3 @@
-/* arch-tag: ca7e2882-6c14-431f-8274-c5cd0f6883d0 */
-
 /*  eXperience GTK engine: drawable.h
  *  
  *  Copyright (C) 2004-2005  Benjamin Berg <benjamin@sipsolutions.net>

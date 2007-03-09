@@ -1,5 +1,3 @@
-/* arch-tag: 81ccb22b-9b50-4c3a-8220-e18079a5f058 */
-
 /*  eXperience GTK engine: image_loading.h
  *  
  *  Copyright (C) 2004-2005  Benjamin Berg <benjamin@sipsolutions.net>

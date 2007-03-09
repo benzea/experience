@@ -1,5 +1,3 @@
-/* arch-tag: ef126cd3-9cee-42c8-9bea-9a35dda8db85 */
-
 /*  eXperience GTK engine: filter.h
  *  
  *  Copyright (C) 2004-2005  Benjamin Berg <benjamin@sipsolutions.net>

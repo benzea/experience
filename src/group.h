@@ -1,5 +1,3 @@
-/* arch-tag: 901e1b3c-0f88-49cb-8aea-0ee2dce5e8a5 */
-
 /*  eXperience GTK engine: group.h
  *  
  *  Copyright (C) 2004-2005  Benjamin Berg <benjamin@sipsolutions.net>

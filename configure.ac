@@ -1,5 +1,3 @@
-# arch-tag: df04c3d3-9a02-453e-a652-db57a2269f13
-
 AC_INIT
 AC_CONFIG_SRCDIR([configure.ac])
 
