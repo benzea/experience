@@ -327,9 +327,7 @@ experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * d
 	cairo_t * sub_cr;
 	eXperienceDrawable * drawable;
 	eXperienceSize real_dest_size;
-	cairo_matrix_t matrix;
 	gboolean result = TRUE;
-	gint tmp;
 	
 	g_return_val_if_fail (group != NULL, FALSE);
 	g_return_val_if_fail (cr    != NULL, FALSE);
@@ -376,55 +374,9 @@ experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * d
 	/* create a new surface */
 	real_dest_size.width  -= group->padding.left + group->padding.right;
 	real_dest_size.height -= group->padding.top  + group->padding.bottom;
-	
-	/* first mirror */
-	cairo_matrix_init_identity (&matrix);
-	
-	if (group->filter.mirror & ORIENTATION_HORIZONTAL) {
-		matrix.xx = -1.0;
-		matrix.x0 = real_dest_size.width;
-	}
-	if (group->filter.mirror & ORIENTATION_VERTICAL) {
-		matrix.yy = -1.0;
-		matrix.y0 = real_dest_size.height;
-	}
-	
-	/* then rotate */
-	/* Rotation is broken in cairo! See bug #2488 */
-	switch (group->filter.rotation) {
-		case ROTATE_CW:
-			cairo_matrix_rotate (&matrix, M_PI_2);
-			
-			matrix.x0 += real_dest_size.width;
-			
-			/* switch width<->height */
-			tmp = real_dest_size.width;
-			real_dest_size.width  = real_dest_size.height;
-			real_dest_size.height = tmp;
-			break;
-		case ROTATE_CCW:
-			cairo_matrix_rotate (&matrix, -M_PI_2);
-			
-			matrix.y0 += real_dest_size.height;
-			
-			/* switch width<->height */
-			tmp = real_dest_size.width;
-			real_dest_size.width  = real_dest_size.height;
-			real_dest_size.height = tmp;
-			break;
-		case ROTATE_AROUND:
-			cairo_matrix_rotate (&matrix, M_PI);
-			
-			matrix.x0 += real_dest_size.height;
-			matrix.y0 += real_dest_size.width;
-			break;
-		default:
-			break;
-	}
-	
-	/* then transform */
-	cairo_transform (sub_cr, &matrix);
-	
+
+	experience_cairo_transform (sub_cr, group->filter.mirror, group->filter.rotation, &real_dest_size.width, &real_dest_size.height);
+
 	list = group->drawables;
 	
 	while (list != NULL) {
@@ -440,7 +392,7 @@ experience_group_draw (eXperienceGroup * group, cairo_t * cr, eXperienceSize * d
 		list = g_list_next (list);
 	}
 	
-	if (group->filter.opacity != 1) { /* we created a subsurface */
+	if (sub_cr != cr) { /* we created a subsurface */
 		cairo_set_source_surface (cr, sub_surface, 0, 0);
 		
 		cairo_paint_with_alpha (cr, group->filter.opacity);

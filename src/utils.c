@@ -54,6 +54,51 @@ experience_round (eXperienceRoundingMethod method, gfloat value)
 	g_return_val_if_reached (0);
 }
 
+/* Assumes the top left corner to be at (0,0) */
+void
+experience_cairo_transform (cairo_t *cr, eXperienceOrientation mirror, eXperienceRotate rotation, gint *width, gint *height)
+{
+	gint tmp;
+	/* matrix with for the center of the drawing */	
+	cairo_translate (cr, *width / 2.0, *height / 2.0);
+	
+	switch (rotation) {
+		case ROTATE_CW:
+			cairo_rotate (cr, G_PI_2);
+			
+			/* switch width<->height */
+			tmp = *width;
+			*width  = *height;
+			*height = tmp;
+			break;
+		case ROTATE_CCW:
+			cairo_rotate (cr, -G_PI_2);
+			
+			/* switch width<->height */
+			tmp = *width;
+			*width  = *height;
+			*height = tmp;
+			break;
+		case ROTATE_AROUND:
+			cairo_rotate (cr, G_PI);
+			break;
+		default:
+			break;
+	}
+
+	/* Why do the mirroring after rotation? I want it the other way around,
+	   so why does this work? */
+	if (mirror & ORIENTATION_HORIZONTAL) {
+		cairo_scale (cr, -1.0, 1.0);
+	}
+	if (mirror & ORIENTATION_VERTICAL) {
+		cairo_scale (cr, 1.0, -1.0);
+	}
+
+	/* move back */
+	cairo_translate (cr, -*width / 2.0, -*height / 2.0);
+}
+
 /* this function is now pretty usesless ... */
 GdkPixbuf *
 experience_gdk_pixbuf_scale_or_ref (GdkPixbuf * pixbuf, GdkRectangle * src, gint dest_width, gint dest_height, GdkInterpType interp_type)

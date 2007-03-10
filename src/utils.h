@@ -58,6 +58,7 @@ typedef enum {
 } eXperienceOrientation;
 
 gint experience_round (eXperienceRoundingMethod method, gfloat value);
+void experience_cairo_transform (cairo_t *cr, eXperienceOrientation mirror, eXperienceRotate rotation, gint *width, gint *height);
 
 void experience_rectangle_union (GdkRectangle * src1, GdkRectangle * src2, GdkRectangle * dest);
 

@@ -287,10 +287,7 @@ draw_image_part (tmp_drawing_data * paint_data, eXperienceImage * image, gint ar
 		
 		cairo_pattern_set_filter (pattern, image->interp_type);
 		
-		/* XXX: FIXME? Is REFLECT correct ... will some other option be added
-		 * at some point, with the feature I want? ... lets see. */
-		/* XXX: THIS DOES NOT WORK AS EXPECTED! Cairo falls back to REPEAT because REFLECT is not implemented. */
-		cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REFLECT);
+		/* cairo_pattern_set_extend (pattern, CAIRO_EXTEND_PAD); */
 		cairo_rectangle (paint_data->cr, 0, 0, paint_data->scaled_width[area], paint_data->scaled_height[area]);
 		cairo_fill (paint_data->cr);
 		

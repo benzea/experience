@@ -480,7 +480,7 @@ experience_drawable_draw (eXperienceDrawable * drawable, cairo_t * cr, eXperienc
 			result = FALSE; /* whoops, fail */
 			goto end;
 		}
-		/* XXX: This does not work for rotated surfaces! */
+		/* XXX: This does not work for rotated surfaces! Probably not the case anymore. */
 		cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REPEAT);
 		
 		/* draw */
