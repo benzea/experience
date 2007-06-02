@@ -63,7 +63,6 @@ void experience_cairo_transform (cairo_t *cr, eXperienceOrientation mirror, eXpe
 void experience_rectangle_union (GdkRectangle * src1, GdkRectangle * src2, GdkRectangle * dest);
 
 /* The following functions exist to save time used for creating GdkPixbufs */
-GdkPixbuf * experience_gdk_pixbuf_scale_or_ref (GdkPixbuf * pixbuf, GdkRectangle * src, gint dest_width, gint dest_height, GdkInterpType interp_type);
 GdkPixbuf * experience_gdk_pixbuf_scale_simple_or_ref (GdkPixbuf * pixbuf, gint width, gint height, GdkInterpType interp_type);
 
 GdkPixbuf * experience_change_pixbuf_opacity (GdkPixbuf * pixbuf, gfloat opacity);

@@ -99,26 +99,6 @@ experience_cairo_transform (cairo_t *cr, eXperienceOrientation mirror, eXperienc
 	cairo_translate (cr, -*width / 2.0, -*height / 2.0);
 }
 
-/* this function is now pretty usesless ... */
-GdkPixbuf *
-experience_gdk_pixbuf_scale_or_ref (GdkPixbuf * pixbuf, GdkRectangle * src, gint dest_width, gint dest_height, GdkInterpType interp_type)
-{
-	static GdkPixbuf * subpixbuf = NULL; /* we reuse this ... so it needs to be garanteed that nobody keeps it around ... */
-	GdkPixbuf * result;
-	
-	if ((src->x == 0) && (src->y == 0) && (src->width == dest_width) && (src->height == dest_height) &&
-	    (dest_width  == gdk_pixbuf_get_width (pixbuf)) && (dest_height == gdk_pixbuf_get_height (pixbuf))) {
-		/* we can just use the original pixbuf */
-		g_object_ref (pixbuf);
-		return pixbuf;
-	} else {
-		subpixbuf = gdk_pixbuf_new_subpixbuf (pixbuf, src->x, src->y, src->width, src->height);
-		result = experience_gdk_pixbuf_scale_simple_or_ref (subpixbuf, dest_width, dest_height, interp_type);
-		g_object_unref (subpixbuf);
-		return result;
-	}
-}
-
 GdkPixbuf *
 experience_gdk_pixbuf_scale_simple_or_ref (GdkPixbuf * pixbuf, gint width, gint height, GdkInterpType interp_type)
 {
